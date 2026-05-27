@@ -14,6 +14,21 @@ require __DIR__ . '/../../inc/header.php';
 <main>
     <section class="accueil-intro">
         <h2>Administration</h2>
+        <div class="stats-admin">
+            <article>
+                <strong>12</strong>
+                <span>profils étudiants</span>
+            </article>
+            <article>
+                <strong>4</strong>
+                <span>entreprises</span>
+            </article>
+            <article>
+                <strong>7</strong>
+                <span>convocations</span>
+            </article>
+        </div>
+
         <div class="choix-accueil">
             <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/admin/utilisateurs.php', ENT_QUOTES, 'UTF-8'); ?>">
                 <strong>Utilisateurs</strong>

@@ -14,6 +14,9 @@ require __DIR__ . '/inc/header.php';
 <main>
     <section class="accueil-intro" id="section-connexion">
         <h2>Connexion</h2>
+        <p class="message-cv">
+            Accédez à votre espace étudiant ou entreprise avec les identifiants fournis.
+        </p>
         <div id="connexion-contenu"></div>
     </section>
 
@@ -35,11 +38,37 @@ require __DIR__ . '/inc/header.php';
     </section>
 
     <section class="accueil-intro">
+        <h2>Fonctionnement</h2>
+        <div class="etapes-plateforme">
+            <article>
+                <strong>1</strong>
+                <h3>Créer son CV</h3>
+                <p>Un étudiant complète un formulaire et obtient un CV standardisé.</p>
+            </article>
+            <article>
+                <strong>2</strong>
+                <h3>Publier son profil</h3>
+                <p>Les informations utiles sont visibles dans le catalogue étudiant.</p>
+            </article>
+            <article>
+                <strong>3</strong>
+                <h3>Être contacté</h3>
+                <p>Une entreprise partenaire peut proposer une convocation.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="accueil-intro">
         <h2>Catalogue étudiants</h2>
         <p>
             Les entreprises partenaires peuvent consulter les profils étudiants,
             filtrer les recherches et envoyer une convocation depuis le catalogue.
         </p>
+        <div class="indicateurs-accueil" aria-label="Aperçu des fonctionnalités">
+            <span>Recherche par domaine</span>
+            <span>Profils consultables</span>
+            <span>Convocations suivies</span>
+        </div>
         <div class="actions-ligne">
             <a class="bouton" href="<?php echo htmlspecialchars($assetBase . '/pages/catalogue.php', ENT_QUOTES, 'UTF-8'); ?>">Voir le catalogue</a>
             <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/contact.php', ENT_QUOTES, 'UTF-8'); ?>">Devenir partenaire</a>

@@ -15,6 +15,29 @@ require __DIR__ . '/../inc/header.php';
     <section class="accueil-intro">
         <h2>Convocations</h2>
         <p class="message-cv">L'historique sera alimenté après connexion d'une entreprise partenaire.</p>
+        <div class="tableau-simple">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Étudiant</th>
+                        <th>Contrat</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Keanu GAUTHIER</td>
+                        <td>Stage</td>
+                        <td>En attente</td>
+                    </tr>
+                    <tr>
+                        <td>Alice DUPONT</td>
+                        <td>Alternance</td>
+                        <td>Envoyée</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 

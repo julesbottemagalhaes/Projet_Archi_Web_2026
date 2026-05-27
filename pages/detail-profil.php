@@ -19,6 +19,14 @@ require __DIR__ . '/../inc/header.php';
 <aside>
     <img id="cv-photo" src="<?php echo htmlspecialchars($assetBase . '/uploads/photos/photo_profil.png', ENT_QUOTES, 'UTF-8'); ?>" alt="Photo de Keanu Gauthier">
 
+    <section class="resume-cv">
+        <h2>Recherche</h2>
+        <ul>
+            <li>Stage</li>
+            <li>Alternance</li>
+        </ul>
+    </section>
+
     <section>
         <h2>Compétences</h2>
         <ul id="cv-competences">
@@ -63,6 +71,16 @@ require __DIR__ . '/../inc/header.php';
         <h2>Profil</h2>
         <article>
             <p id="cv-profil"></p>
+        </article>
+    </section>
+
+    <section>
+        <h2>Synthèse</h2>
+        <article>
+            <p>
+                Profil étudiant présenté dans un format commun afin de faciliter la lecture
+                par les entreprises partenaires et l'équipe JUNIA.
+            </p>
         </article>
     </section>
 

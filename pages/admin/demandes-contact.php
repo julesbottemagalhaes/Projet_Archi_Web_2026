@@ -15,6 +15,29 @@ require __DIR__ . '/../../inc/header.php';
     <section class="accueil-intro">
         <h2>Demandes entreprises</h2>
         <p class="message-cv">Les demandes envoyées depuis le formulaire de contact apparaîtront ici.</p>
+        <div class="tableau-simple">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Entreprise</th>
+                        <th>Contact</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>DataLab</td>
+                        <td>contact@datalab.fr</td>
+                        <td>Nouvelle</td>
+                    </tr>
+                    <tr>
+                        <td>GreenTech</td>
+                        <td>rh@greentech.fr</td>
+                        <td>À traiter</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 

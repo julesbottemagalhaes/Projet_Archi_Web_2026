@@ -14,6 +14,10 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <section class="accueil-intro">
         <h2>Demande de suppression</h2>
+        <p class="message-cv">
+            La demande sera traitée par l'administration JUNIA afin de supprimer
+            le compte et les informations associées.
+        </p>
         <form>
             <label for="email">Email du compte</label>
             <input type="email" id="email" name="email" required>

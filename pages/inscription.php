@@ -14,6 +14,10 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <section class="accueil-intro">
         <h2>Inscription étudiant</h2>
+        <p class="message-cv">
+            La création de compte est réservée aux étudiants JUNIA. Une adresse
+            institutionnelle est demandée pour préparer la validation du compte.
+        </p>
         <form>
             <div class="grille-formulaire">
                 <div>
@@ -44,6 +48,24 @@ require __DIR__ . '/../inc/header.php';
                 <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/connexion.php', ENT_QUOTES, 'UTF-8'); ?>">Déjà inscrit</a>
             </div>
         </form>
+    </section>
+
+    <section class="accueil-intro">
+        <h2>Après l'inscription</h2>
+        <div class="etapes-plateforme">
+            <article>
+                <strong>Compte</strong>
+                <p>Le compte permet de retrouver les informations du CV.</p>
+            </article>
+            <article>
+                <strong>Profil</strong>
+                <p>Les données du formulaire alimentent le profil étudiant.</p>
+            </article>
+            <article>
+                <strong>Catalogue</strong>
+                <p>Le profil pourra être consulté par les entreprises partenaires.</p>
+            </article>
+        </div>
     </section>
 </main>
 

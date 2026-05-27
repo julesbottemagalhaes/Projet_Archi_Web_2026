@@ -13,6 +13,14 @@ require __DIR__ . '/../inc/header.php';
 
 <main class="creation-cv">
     <form id="form-cv" class="formulaire-cv">
+        <div class="intro-formulaire">
+            <h2>Informations du CV</h2>
+            <p>
+                Les champs ci-dessous alimentent le CV visible par les entreprises partenaires.
+                Gardez des intitulés courts et faciles à lire.
+            </p>
+        </div>
+
         <fieldset>
             <legend>Identité</legend>
 
@@ -112,6 +120,7 @@ require __DIR__ . '/../inc/header.php';
 
     <section id="apercu-cv" class="apercu" aria-live="polite">
         <h2>Aperçu rapide</h2>
+        <p class="message-cv">L'aperçu se met à jour pendant la saisie.</p>
         <div id="apercu-contenu"></div>
     </section>
 </main>

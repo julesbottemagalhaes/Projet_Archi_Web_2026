@@ -15,6 +15,29 @@ require __DIR__ . '/../../inc/header.php';
     <section class="accueil-intro">
         <h2>Profils à modérer</h2>
         <p class="message-cv">Cette page reprendra les profils enregistrés dans la base de données.</p>
+        <div class="tableau-simple">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Étudiant</th>
+                        <th>Domaine</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Keanu GAUTHIER</td>
+                        <td>Stage, alternance</td>
+                        <td>Publié</td>
+                    </tr>
+                    <tr>
+                        <td>Alice DUPONT</td>
+                        <td>Stage, CDI</td>
+                        <td>À relire</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 

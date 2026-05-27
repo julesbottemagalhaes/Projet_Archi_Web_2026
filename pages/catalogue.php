@@ -14,6 +14,10 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <section class="accueil-intro section-profils">
         <h2>Profils des étudiants</h2>
+        <p class="message-cv">
+            Utilisez les filtres pour retrouver rapidement les étudiants selon leur projet :
+            stage, alternance, CDI ou mobilité internationale.
+        </p>
 
         <div class="filtres-profils">
             <input type="text" id="search-input" placeholder="Rechercher un étudiant...">
@@ -33,6 +37,24 @@ require __DIR__ . '/../inc/header.php';
             <button type="button" id="btn-prev" onclick="changerPage(-1)" hidden>Précédent</button>
             <span id="page-info"></span>
             <button type="button" id="btn-next" onclick="changerPage(1)" hidden>Suivant</button>
+        </div>
+    </section>
+
+    <section class="accueil-intro aide-catalogue">
+        <h2>Lecture des profils</h2>
+        <div class="etapes-plateforme">
+            <article>
+                <strong>Filtrer</strong>
+                <p>Combinez recherche texte et domaine pour réduire la liste.</p>
+            </article>
+            <article>
+                <strong>Consulter</strong>
+                <p>Chaque carte présente l'identité, la biographie courte et les domaines.</p>
+            </article>
+            <article>
+                <strong>Convoquer</strong>
+                <p>Le bouton est actif après connexion avec un compte entreprise.</p>
+            </article>
         </div>
     </section>
 </main>

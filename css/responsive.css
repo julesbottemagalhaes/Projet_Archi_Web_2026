@@ -16,6 +16,11 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .etapes-plateforme,
+    .stats-admin {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .filtres-profils button {
         grid-column: 1 / -1;
     }
@@ -84,8 +89,10 @@
     }
 
     .choix-accueil,
+    .etapes-plateforme,
     .grille-formulaire,
-    .form-actions {
+    .form-actions,
+    .stats-admin {
         grid-template-columns: 1fr;
     }
 
@@ -100,6 +107,11 @@
 
     .filtres-profils button {
         grid-column: auto;
+    }
+
+    .tableau-simple th,
+    .tableau-simple td {
+        padding: 0.75rem;
     }
 }
 

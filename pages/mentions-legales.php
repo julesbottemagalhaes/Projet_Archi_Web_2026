@@ -23,6 +23,15 @@ require __DIR__ . '/../inc/header.php';
             associées depuis la page dédiée.
         </p>
     </section>
+
+    <section class="accueil-intro">
+        <h2>Utilisation prévue</h2>
+        <ul class="liste-simple">
+            <li>Création d'un CV étudiant standardisé.</li>
+            <li>Consultation des profils par les entreprises partenaires.</li>
+            <li>Gestion des demandes et convocations dans un cadre pédagogique.</li>
+        </ul>
+    </section>
 </main>
 
 <?php require __DIR__ . '/../inc/footer.php'; ?>

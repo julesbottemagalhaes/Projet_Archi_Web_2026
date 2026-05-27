@@ -14,6 +14,10 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <section class="accueil-intro">
         <h2>Demande entreprise</h2>
+        <p class="message-cv">
+            Ce formulaire permet à une entreprise non partenaire de présenter sa demande
+            avant la création éventuelle d'un compte par l'administration.
+        </p>
         <form>
             <div class="grille-formulaire">
                 <div>
@@ -33,6 +37,24 @@ require __DIR__ . '/../inc/header.php';
                 <button type="submit">Envoyer la demande</button>
             </div>
         </form>
+    </section>
+
+    <section class="accueil-intro">
+        <h2>Informations utiles</h2>
+        <div class="etapes-plateforme">
+            <article>
+                <strong>Accès</strong>
+                <p>Les identifiants entreprise sont fournis par JUNIA après validation.</p>
+            </article>
+            <article>
+                <strong>Catalogue</strong>
+                <p>L'entreprise peut ensuite consulter les profils disponibles.</p>
+            </article>
+            <article>
+                <strong>Convocation</strong>
+                <p>Les candidats peuvent être contactés depuis leur fiche profil.</p>
+            </article>
+        </div>
     </section>
 </main>
 
