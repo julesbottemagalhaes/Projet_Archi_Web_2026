@@ -1,14 +1,18 @@
 :root {
     --couleur-principale: #6B2C91;
+    --couleur-principale-foncee: #4A1B68;
     --couleur-secondaire: #F39200;
     --couleur-texte: #2A2A2A;
+    --couleur-texte-clair: rgba(42, 42, 42, 0.74);
     --couleur-fond: #FAF7FB;
+    --couleur-fond-clair: #FFFDF7;
     --couleur-carte: #FFFFFF;
     --couleur-bordure: #E4D8EA;
     --couleur-erreur: #C0392B;
     --couleur-succes: #1E8449;
-    --ombre-carte: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --ombre-carte-hover: 0 6px 16px rgba(0, 0, 0, 0.18);
+    --ombre-carte: 0 8px 22px rgba(74, 27, 104, 0.08);
+    --ombre-carte-hover: 0 12px 28px rgba(74, 27, 104, 0.15);
+    --rayon-carte: 8px;
 }
 
 * {
@@ -28,13 +32,15 @@ body {
         "header header"
         "aside main"
         "footer footer";
-    gap: 30px;
-    max-width: 1100px;
+    gap: 28px;
+    max-width: 1120px;
     min-height: 100vh;
     margin: 0 auto;
-    padding: 30px;
+    padding: 28px;
     color: var(--couleur-texte);
-    background-color: var(--couleur-fond);
+    background:
+        linear-gradient(180deg, var(--couleur-fond-clair) 0, var(--couleur-fond) 280px),
+        var(--couleur-fond);
     font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5;
@@ -62,6 +68,7 @@ a:focus-visible {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
     outline: 3px solid rgba(243, 146, 0, 0.35);
     outline-offset: 3px;
@@ -69,12 +76,12 @@ textarea:focus-visible {
 
 h1 {
     color: var(--couleur-secondaire);
-    font-size: 34px;
+    font-size: 36px;
     line-height: 1.1;
 }
 
 h2 {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     padding-left: 10px;
     border-left: 4px solid var(--couleur-secondaire);
     font-size: 20px;
@@ -92,10 +99,11 @@ header {
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    padding: 24px 40px;
+    padding: 26px 40px;
     color: var(--couleur-carte);
-    background: var(--couleur-principale);
-    border-radius: 10px;
+    background: linear-gradient(135deg, var(--couleur-principale), var(--couleur-principale-foncee));
+    border-radius: 12px;
+    box-shadow: var(--ombre-carte);
 }
 
 header p {
@@ -126,7 +134,7 @@ header p {
 }
 
 .navigation a {
-    padding: 8px 11px;
+    padding: 8px 12px;
     color: var(--couleur-carte);
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 6px;
@@ -165,7 +173,8 @@ aside {
     height: fit-content;
     padding: 24px;
     background: var(--couleur-carte);
-    border-radius: 8px;
+    border: 1px solid var(--couleur-bordure);
+    border-radius: var(--rayon-carte);
     box-shadow: var(--ombre-carte);
 }
 
@@ -191,7 +200,7 @@ aside li {
     padding: 7px 9px;
     background: var(--couleur-carte);
     border: 1px solid var(--couleur-bordure);
-    border-radius: 8px;
+    border-radius: var(--rayon-carte);
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.06);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -214,9 +223,10 @@ main article,
 .barre-actions,
 .accueil-intro,
 form {
-    padding: 16px 20px;
+    padding: 20px 22px;
     background: var(--couleur-carte);
-    border-radius: 8px;
+    border: 1px solid var(--couleur-bordure);
+    border-radius: var(--rayon-carte);
     box-shadow: var(--ombre-carte);
 }
 
@@ -253,7 +263,7 @@ main ul {
 }
 
 .message-cv {
-    color: rgba(42, 42, 42, 0.78);
+    color: var(--couleur-texte-clair);
 }
 
 .actions-ligne,
@@ -270,7 +280,7 @@ button {
     justify-content: center;
     min-height: 42px;
     padding: 0.75rem 1rem;
-    border: 0;
+    border: 1px solid transparent;
     border-radius: 6px;
     color: var(--couleur-carte);
     background: var(--couleur-principale);
@@ -281,7 +291,9 @@ button {
 }
 
 .bouton:hover,
-button:hover {
+button:hover,
+.bouton:focus-visible,
+button:focus-visible {
     color: var(--couleur-carte);
     background: var(--couleur-secondaire);
     transform: translateY(-2px);
@@ -310,8 +322,12 @@ button:hover {
 }
 
 .accueil-intro {
-    max-width: 820px;
+    max-width: 880px;
     margin: 0 auto;
+}
+
+.accueil-intro + .accueil-intro {
+    margin-top: 24px;
 }
 
 .choix-accueil {
@@ -330,7 +346,7 @@ button:hover {
     color: var(--couleur-texte);
     background: #FFFFFF;
     border: 1px solid var(--couleur-bordure);
-    border-radius: 8px;
+    border-radius: var(--rayon-carte);
     box-shadow: var(--ombre-carte);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -349,7 +365,7 @@ button:hover {
 }
 
 .choix span {
-    color: rgba(42, 42, 42, 0.76);
+    color: var(--couleur-texte-clair);
 }
 
 .creation-cv {
@@ -367,7 +383,7 @@ button:hover {
 fieldset {
     padding: 18px;
     border: 1px solid var(--couleur-bordure);
-    border-radius: 8px;
+    border-radius: var(--rayon-carte);
 }
 
 legend {
@@ -404,6 +420,8 @@ input[type="email"],
 input[type="date"],
 input[type="tel"],
 input[type="url"],
+input[type="password"],
+select,
 textarea {
     width: 100%;
     padding: 0.75rem;
@@ -414,9 +432,11 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
     border-color: var(--couleur-secondaire);
     box-shadow: 0 0 0 3px rgba(243, 146, 0, 0.18);
+    outline: none;
 }
 
 textarea {
@@ -494,7 +514,7 @@ textarea {
     padding: 1rem 1.5rem;
     color: var(--couleur-carte);
     background: var(--couleur-secondaire);
-    border-radius: 8px;
+    border-radius: var(--rayon-carte);
     box-shadow: var(--ombre-carte-hover);
     animation: slideIn 0.3s ease;
 }
@@ -589,7 +609,7 @@ footer {
     padding: 1.2rem;
     background: var(--couleur-carte);
     border: 1px solid var(--couleur-bordure);
-    border-radius: 8px;
+    border-radius: var(--rayon-carte);
     box-shadow: var(--ombre-carte);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -626,7 +646,7 @@ footer {
 
 .profil-card p {
     font-size: 0.88rem;
-    color: rgba(42, 42, 42, 0.8);
+    color: var(--couleur-texte-clair);
     line-height: 1.5;
 }
 
@@ -642,7 +662,7 @@ footer {
     color: #fff;
     font-size: 0.75rem;
     padding: 0.15rem 0.6rem;
-    border-radius: 12px;
+    border-radius: 999px;
     font-weight: 600;
 }
 
@@ -653,7 +673,7 @@ footer {
     font-size: 0.88rem;
     background: var(--couleur-succes);
     color: #fff;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 6px;
     font-weight: 700;
     cursor: pointer;
@@ -681,7 +701,7 @@ footer {
 
 #page-info {
     font-size: 0.9rem;
-    color: rgba(42, 42, 42, 0.7);
+    color: var(--couleur-texte-clair);
 }
 
 @keyframes slideIn {
@@ -693,105 +713,5 @@ footer {
     to {
         opacity: 1;
         transform: translateX(0);
-    }
-}
-
-@media (max-width: 900px) {
-    .creation-cv {
-        grid-template-columns: 1fr;
-    }
-
-    .apercu {
-        position: static;
-    }
-}
-
-@media (max-width: 768px) {
-    body {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "header"
-            "aside"
-            "main"
-            "footer";
-        padding: 20px;
-    }
-
-    body.page-simple {
-        grid-template-areas:
-            "header"
-            "main"
-            "footer";
-    }
-
-    header,
-    .header-droite {
-        align-items: center;
-        text-align: center;
-    }
-
-    header {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .navigation,
-    .contact {
-        justify-content: center;
-        text-align: center;
-    }
-
-    aside img {
-        width: 180px;
-        height: 180px;
-    }
-
-    .barre-actions {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .choix-accueil,
-    .grille-formulaire,
-    .form-actions {
-        grid-template-columns: 1fr;
-    }
-
-    #grille-profils {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 14px;
-    }
-
-    header,
-    aside,
-    main article,
-    .apercu,
-    .barre-actions,
-    .accueil-intro,
-    form {
-        padding: 18px;
-    }
-
-    fieldset {
-        padding: 14px;
-    }
-
-    h1 {
-        font-size: 28px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
-        animation: none !important;
     }
 }
