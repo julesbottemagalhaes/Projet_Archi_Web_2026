@@ -1,0 +1,10 @@
+<?php
+require __DIR__ . '/../inc/db.php';
+
+header('Content-Type: application/json');
+session_destroy();
+
+echo json_encode([
+    'success' => true,
+    'message' => 'Déconnecté',
+]);
