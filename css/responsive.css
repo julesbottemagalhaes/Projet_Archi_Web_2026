@@ -1,1 +1,159 @@
-/* Les media queries principales viennent de l'ancien projet et restent dans style.css. */
+@media (max-width: 900px) {
+    body {
+        gap: 22px;
+    }
+
+    .creation-cv {
+        grid-template-columns: 1fr;
+    }
+
+    .apercu {
+        position: static;
+    }
+
+    .filtres-profils {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filtres-profils button {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "aside"
+            "main"
+            "footer";
+        padding: 20px;
+    }
+
+    body.page-simple {
+        grid-template-areas:
+            "header"
+            "main"
+            "footer";
+    }
+
+    header,
+    .header-droite {
+        align-items: center;
+        text-align: center;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 16px;
+        padding: 24px;
+    }
+
+    .navigation,
+    .contact {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .navigation a {
+        flex: 1 1 auto;
+        min-width: 132px;
+    }
+
+    aside img {
+        width: 180px;
+        height: 180px;
+    }
+
+    .barre-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .actions-ligne,
+    .form-actions {
+        width: 100%;
+    }
+
+    .actions-ligne .bouton,
+    .actions-ligne button,
+    .form-actions button {
+        width: 100%;
+    }
+
+    .choix-accueil,
+    .grille-formulaire,
+    .form-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .choix {
+        min-height: 128px;
+    }
+
+    .filtres-profils,
+    #grille-profils {
+        grid-template-columns: 1fr;
+    }
+
+    .filtres-profils button {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        gap: 18px;
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    header,
+    aside,
+    main article,
+    .apercu,
+    .barre-actions,
+    .accueil-intro,
+    form {
+        padding: 18px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    fieldset {
+        padding: 14px;
+    }
+
+    .navigation {
+        width: 100%;
+    }
+
+    .navigation a {
+        min-width: 100%;
+    }
+
+    .notification {
+        right: 14px;
+        bottom: 14px;
+        left: 14px;
+        text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+    }
+}
