@@ -1,71 +1,71 @@
 <?php
-$siteName = 'JUNIA CV Hub';
-$pageTitle = isset($pageTitle) && $pageTitle !== '' ? $pageTitle . ' | ' . $siteName : $siteName;
-$bodyClass = $bodyClass ?? '';
+$siteName = 'CV JUNIA';
+$pageTitle = $pageTitle ?? $siteName;
+$metaDescription = $metaDescription ?? 'Plateforme web JUNIA pour consulter et créer des CV étudiants.';
+$bodyClass = $bodyClass ?? 'page-simple';
+$dataPage = $dataPage ?? '';
+$currentPage = $currentPage ?? 'accueil';
+$headerKicker = $headerKicker ?? 'TP CV';
+$headerTitle = $headerTitle ?? 'CV JUNIA';
+$headerSubtitle = $headerSubtitle ?? 'Consulter les profils étudiants ou créer un CV personnalisé.';
+$headerContact = $headerContact ?? [];
 
 $scriptDirectory = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
 $baseUrl = preg_replace('#/(pages|api|inc)(/.*)?$#', '', $scriptDirectory);
-$baseUrl = rtrim($baseUrl, '/');
-
-$currentFile = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
-$activePage = $activePage ?? match ($currentFile) {
-    'catalogue.php' => 'catalogue',
-    'contact.php' => 'contact',
-    'connexion.php' => 'connexion',
-    'inscription.php' => 'inscription',
-    default => 'accueil',
-};
+$baseUrl = $baseUrl === '/' ? '' : rtrim($baseUrl, '/');
+$assetBase = $baseUrl === '' ? '' : $baseUrl;
 
 $navItems = [
-    ['label' => 'Accueil', 'href' => $baseUrl . '/index.php', 'key' => 'accueil'],
-    ['label' => 'Catalogue', 'href' => $baseUrl . '/pages/catalogue.php', 'key' => 'catalogue'],
-    ['label' => 'Contact', 'href' => $baseUrl . '/pages/contact.php', 'key' => 'contact'],
+    'accueil' => ['label' => 'Accueil', 'href' => $assetBase . '/index.php'],
+    'catalogue' => ['label' => 'Catalogue', 'href' => $assetBase . '/pages/catalogue.php'],
+    'cv' => ['label' => 'Voir le CV', 'href' => $assetBase . '/pages/detail-profil.php'],
+    'creer' => ['label' => 'Créer un CV', 'href' => $assetBase . '/pages/modifier-profil.php'],
+    'connexion' => ['label' => 'Connexion', 'href' => $assetBase . '/pages/connexion.php'],
 ];
-
-$pageTitleEscaped = htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8');
-$bodyClassEscaped = htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8');
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Plateforme de consultation des CV étudiants JUNIA pour les entreprises partenaires.">
-    <title><?php echo $pageTitleEscaped; ?></title>
-    <link rel="stylesheet" href="<?php echo htmlspecialchars($baseUrl . '/css/style.css', ENT_QUOTES, 'UTF-8'); ?>">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars($baseUrl . '/css/responsive.css', ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="description" content="<?php echo htmlspecialchars($metaDescription, ENT_QUOTES, 'UTF-8'); ?>">
+    <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?></title>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($assetBase . '/css/style.css', ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($assetBase . '/css/responsive.css', ENT_QUOTES, 'UTF-8'); ?>">
+    <script>
+        window.JUNIA_API_BASE = "<?php echo htmlspecialchars($assetBase . '/api', ENT_QUOTES, 'UTF-8'); ?>";
+        window.JUNIA_DEFAULT_PHOTO = "<?php echo htmlspecialchars($assetBase . '/uploads/photos/photo_profil.png', ENT_QUOTES, 'UTF-8'); ?>";
+        window.JUNIA_ROUTES = {
+            accueil: "<?php echo htmlspecialchars($assetBase . '/index.php', ENT_QUOTES, 'UTF-8'); ?>",
+            cv: "<?php echo htmlspecialchars($assetBase . '/pages/detail-profil.php', ENT_QUOTES, 'UTF-8'); ?>",
+            creer: "<?php echo htmlspecialchars($assetBase . '/pages/modifier-profil.php', ENT_QUOTES, 'UTF-8'); ?>"
+        };
+    </script>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/form-cv.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
 </head>
-<body class="site-body <?php echo $bodyClassEscaped; ?>">
-    <a class="skip-link" href="#contenu">Aller au contenu</a>
+<body id="top" class="<?php echo htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8'); ?>" data-page="<?php echo htmlspecialchars($dataPage, ENT_QUOTES, 'UTF-8'); ?>">
+    <header>
+        <div class="identite-header">
+            <p class="sur-titre"><?php echo htmlspecialchars($headerKicker, ENT_QUOTES, 'UTF-8'); ?></p>
+            <h1><?php echo htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?></h1>
+            <p><?php echo htmlspecialchars($headerSubtitle, ENT_QUOTES, 'UTF-8'); ?></p>
+        </div>
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a class="brand" href="<?php echo htmlspecialchars($baseUrl . '/index.php', ENT_QUOTES, 'UTF-8'); ?>" aria-label="Retour à l'accueil JUNIA CV Hub">
-                <span class="brand-mark">J</span>
-                <span class="brand-text">
-                    <strong>JUNIA</strong>
-                    <span>CV Hub</span>
-                </span>
-            </a>
-
-            <nav class="main-nav" aria-label="Navigation principale">
-                <?php foreach ($navItems as $item): ?>
-                    <?php $isActive = $activePage === $item['key']; ?>
-                    <a
-                        class="nav-link<?php echo $isActive ? ' is-active' : ''; ?>"
-                        href="<?php echo htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8'); ?>"
-                        <?php echo $isActive ? 'aria-current="page"' : ''; ?>
-                    >
+        <div class="header-droite">
+            <nav class="navigation" aria-label="Navigation principale">
+                <?php foreach ($navItems as $key => $item): ?>
+                    <a href="<?php echo htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo $currentPage === $key ? ' aria-current="page"' : ''; ?>>
                         <?php echo htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8'); ?>
                     </a>
                 <?php endforeach; ?>
             </nav>
 
-            <div class="header-actions" aria-label="Accès rapides">
-                <a class="btn btn-ghost" href="<?php echo htmlspecialchars($baseUrl . '/pages/connexion.php', ENT_QUOTES, 'UTF-8'); ?>">Connexion</a>
-                <a class="btn btn-primary" href="<?php echo htmlspecialchars($baseUrl . '/pages/inscription.php', ENT_QUOTES, 'UTF-8'); ?>">Inscription</a>
-            </div>
+            <?php if (!empty($headerContact)): ?>
+                <ul id="cv-contact" class="contact" aria-label="Informations de contact">
+                    <?php foreach ($headerContact as $contact): ?>
+                        <li><?php echo $contact; ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         </div>
     </header>
-
-    <main id="contenu" class="site-main">
