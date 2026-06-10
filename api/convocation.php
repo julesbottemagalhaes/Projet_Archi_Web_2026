@@ -19,24 +19,33 @@
     json_response(["error" => "Type de contrat invalide"], 400);
   }
 
-  $stmtStudent = $connection->prepare('SELECT id FROM etudiants WHERE id = ?');
-  $stmtStudent->bind_param('i', $etudiant_id);
-  $stmtStudent->execute();
+  $etudiant_id = $data['etudiant_id'] ?? null;
+  $type_contrat = $data['type_contrat'] ?? "";
+  $message = $data['message'] ?? "";
+  $date_rdv = $data['date'] ?? null;
+  $heure_rdv = $data['heure'] ?? null;
+  $lieu = $data['lieu'] ?? "";
+  $entreprise_id = $_SESSION['user_id'];
 
-  if ($stmtStudent->get_result()->num_rows === 0) {
-    $stmtStudent->close();
-    json_response(["error" => "Étudiant introuvable"], 404);
+  if (empty($etudiant_id) || empty($type_contrat) || empty($date_rdv) || empty($heure_rdv) || empty($lieu)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Tous les champs sont requis"]);
+    exit;
   }
 
   $stmtStudent->close();
 
   $stmt = $connection->prepare(
-    "INSERT INTO convocations (etudiant_id, entreprise_id, type_contrat, message) VALUES (?, ?, ?, ?)"
+    "INSERT INTO convocations (etudiant_id, entreprise_id, type_contrat, message, date_rdv, heure_rdv, lieu) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
-  $stmt->bind_param("iiss", $etudiant_id, $entreprise_id, $type_contrat, $message);
+  $stmt->bind_param("iisssss", $etudiant_id, $entreprise_id, $type_contrat, $message, $date_rdv, $heure_rdv, $lieu);
 
   if ($stmt->execute()) {
-    json_response([
+    // Simulation d'envoi d'email
+    error_log("Email de convocation envoyé à l'étudiant $etudiant_id par l'entreprise $entreprise_id pour le $date_rdv à $heure_rdv");
+    
+    http_response_code(201);
+    echo json_encode([
       "success" => true,
       "message" => "Convocation envoyée!"
     ], 201);

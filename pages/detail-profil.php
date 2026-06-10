@@ -1,5 +1,6 @@
 <?php
-$pageTitle = 'CV — Keanu Gauthier';
+require_once __DIR__ . '/../inc/db.php';
+$pageTitle = 'CV — Profil';
 $metaDescription = 'CV étudiant JUNIA consultable depuis la plateforme.';
 $bodyClass = 'page-cv';
 $dataPage = 'cv';
@@ -60,10 +61,12 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <div class="barre-actions">
         <p id="cv-message" class="message-cv">CV d'exemple affiché.</p>
-        <div class="actions-ligne">
-            <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/modifier-profil.php', ENT_QUOTES, 'UTF-8'); ?>">Modifier le CV</a>
-            <button id="charger-serveur" class="bouton bouton-secondaire" type="button" hidden>Charger depuis le serveur</button>
-            <button id="reinitialiser-cv" class="bouton bouton-discret" type="button" hidden>Revenir à l'exemple</button>
+        <div class="actions-ligne" id="actions-profil">
+            <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'etudiant'): ?>
+                <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/modifier-profil.php', ENT_QUOTES, 'UTF-8'); ?>">Modifier le CV</a>
+            <?php elseif (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'company'): ?>
+                <button id="btn-ouvrir-convocation" class="bouton bouton-primaire" type="button">Convoquer</button>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -134,6 +137,48 @@ require __DIR__ . '/../inc/header.php';
             <li>IA</li>
         </ul>
     </section>
+
+    <!-- Modale de convocation -->
+    <dialog id="modal-convocation" class="modal">
+        <div class="modal-content">
+            <h2>Convoquer ce candidat</h2>
+            <form id="form-convocation">
+                <div class="grille-formulaire">
+                    <div>
+                        <label for="conv-date">Date de l'entretien</label>
+                        <input type="date" id="conv-date" name="date" required>
+                    </div>
+                    <div>
+                        <label for="conv-heure">Heure</label>
+                        <input type="time" id="conv-heure" name="heure" required>
+                    </div>
+                    <div class="champ-large">
+                        <label for="conv-lieu">Lieu / Lien visio</label>
+                        <input type="text" id="conv-lieu" name="lieu" required>
+                    </div>
+                    <div class="champ-large">
+                        <label for="conv-contrat">Type de contrat proposé</label>
+                        <select id="conv-contrat" name="contrat" required>
+                            <option value="">Sélectionner</option>
+                            <option value="stage">Stage</option>
+                            <option value="alternance">Alternance</option>
+                            <option value="cdi">CDI</option>
+                            <option value="cdd">CDD</option>
+                        </select>
+                    </div>
+                    <div class="champ-large">
+                        <label for="conv-message">Message d'accompagnement</label>
+                        <textarea id="conv-message" name="message" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="actions-ligne" style="margin-top:1rem">
+                    <button type="button" id="btn-fermer-modal" class="bouton bouton-discret">Annuler</button>
+                    <button type="submit" class="bouton bouton-primaire">Envoyer la convocation</button>
+                </div>
+            </form>
+            <p id="conv-resultat" style="margin-top:1rem"></p>
+        </div>
+    </dialog>
 </main>
 
 <?php require __DIR__ . '/../inc/footer.php'; ?>

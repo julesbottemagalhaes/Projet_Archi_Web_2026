@@ -88,15 +88,18 @@
   $prenom = $nomParts[0] ?? '';
   $nom = $nomParts[1] ?? '';
 
-  json_response([
+  $is_pro = isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['company', 'admin']);
+
+  echo json_encode([
+    "id" => $row['id'],
     "prenom" => $prenom,
     "nom" => $nom,
     "titre" => $row['titre'] ?? '',
-    "email" => $row['email'],
-    "telephone" => $row['telephone'] ?? '',
+    "email" => $is_pro ? $row['email'] : null,
+    "telephone" => $is_pro ? ($row['telephone'] ?? '') : null,
     "ville" => $row['ville'] ?? '',
-    "dateNaissance" => $row['date_naissance'] ?? '',
-    "linkedin" => $row['linkedin'] ?? '',
+    "dateNaissance" => $is_pro ? ($row['date_naissance'] ?? '') : null,
+    "linkedin" => $is_pro ? ($row['linkedin'] ?? '') : null,
     "github" => $row['github'] ?? '',
     "photo" => $row['photo'] ?? '',
     "profil" => $row['biographie'] ?? '',

@@ -72,10 +72,29 @@ CREATE TABLE convocations (
   entreprise_id INT NOT NULL,
   type_contrat VARCHAR(50),
   message TEXT,
+  date_rdv DATE,
+  heure_rdv TIME,
+  lieu VARCHAR(255),
   date_convocation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   statut VARCHAR(20) DEFAULT 'en attente',
   FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE CASCADE,
   FOREIGN KEY (entreprise_id) REFERENCES entreprises(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE admins (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE demandes_contact (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  nom_entreprise VARCHAR(100) NOT NULL,
+  email_contact VARCHAR(100) NOT NULL,
+  message TEXT,
+  date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  statut VARCHAR(20) DEFAULT 'en attente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE INDEX idx_etudiant_email ON etudiants(email);

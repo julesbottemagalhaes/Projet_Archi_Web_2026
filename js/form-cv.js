@@ -751,9 +751,10 @@ function afficherSectionConnexion() {
     conteneur.replaceChildren();
 
     if (session) {
-        const labels = { student: "Étudiant", company: "Entreprise", admin: "Admin" };
-        const type = labels[session.type] || "Compte";
-        conteneur.append(creerElement("p", `Connecté en tant que ${session.nom} (${type}).`));
+        let typeStr = "Étudiant";
+        if (session.type === "company") typeStr = "Entreprise";
+        if (session.type === "admin") typeStr = "Administration";
+        conteneur.append(creerElement("p", `Connecté en tant que ${session.nom} (${typeStr}).`));
 
         const actions = document.createElement("div");
         actions.className = "actions-ligne";
@@ -792,7 +793,7 @@ function afficherSectionConnexion() {
                 <legend>Type de compte</legend>
                 <label><input type="radio" name="conn-type" value="student" checked> Étudiant</label>
                 <label><input type="radio" name="conn-type" value="company"> Entreprise</label>
-                <label><input type="radio" name="conn-type" value="admin"> Admin</label>
+                <label><input type="radio" name="conn-type" value="admin"> Administration</label>
             </fieldset>
             <div class="actions-ligne" style="margin-top:1rem">
                 <button type="submit">Se connecter</button>

@@ -131,10 +131,17 @@ INSERT INTO competences (etudiant_id, competence) VALUES
 (9, 'Flutter'), (9, 'Dart'), (9, 'Firebase'), (9, 'Unity'), (9, 'C#'),
 (10, 'Pentest'), (10, 'Python'), (10, 'Metasploit'), (10, 'Kali Linux'), (10, 'OSINT'), (10, 'Cryptographie');
 
-INSERT INTO convocations (etudiant_id, entreprise_id, type_contrat, message, statut) VALUES
-(1, 1, 'alternance', 'Votre profil correspond parfaitement à notre poste d\'alternant développeur web.', 'en attente'),
-(2, 2, 'cdi', 'Nous avons un poste de data scientist senior qui pourrait vous correspondre.', 'accepté'),
-(4, 3, 'stage', 'Nous cherchons un stagiaire passionné par l\'IA pour rejoindre notre équipe research.', 'en attente'),
-(5, 4, 'stage', 'Nous recrutons pour un stage en développement d\'applications embarquées.', 'en attente'),
-(7, 1, 'cdi', 'Votre expertise DevOps nous intéresse pour un poste en CDI dans notre cloud team.', 'accepté'),
-(10, 3, 'alternance', 'Nous proposons une alternance en cybersécurité au sein de notre SOC.', 'en attente');
+INSERT INTO admins (email, password_hash) VALUES
+('admin@junia.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+
+INSERT INTO demandes_contact (nom_entreprise, email_contact, message, statut) VALUES
+('FutureTech', 'contact@futuretech.fr', 'Nous souhaitons rejoindre la plateforme pour recruter des stagiaires en IA.', 'en attente'),
+('WebSolutions', 'hello@websolutions.com', 'Intéressés par des profils de développeurs web pour des contrats en alternance.', 'validée');
+
+INSERT INTO convocations (etudiant_id, entreprise_id, type_contrat, message, date_rdv, heure_rdv, lieu, statut) VALUES
+(1, 1, 'alternance', 'Votre profil correspond parfaitement à notre poste d\'alternant développeur web.', '2026-07-01', '10:00:00', 'Visio-conférence', 'en attente'),
+(2, 2, 'cdi', 'Nous avons un poste de data scientist senior qui pourrait vous correspondre.', '2026-06-15', '14:30:00', 'Locaux Paris', 'accepté'),
+(4, 3, 'stage', 'Nous cherchons un stagiaire passionné par l\'IA pour rejoindre notre équipe research.', '2026-06-20', '09:00:00', 'Bordeaux', 'en attente'),
+(5, 4, 'stage', 'Nous recrutons pour un stage en développement d\'applications embarquées.', '2026-06-25', '11:00:00', 'Nantes', 'en attente'),
+(7, 1, 'cdi', 'Votre expertise DevOps nous intéresse pour un poste en CDI dans notre cloud team.', '2026-06-10', '16:00:00', 'Visio-conférence', 'accepté'),
+(10, 3, 'alternance', 'Nous proposons une alternance en cybersécurité au sein de notre SOC.', '2026-07-05', '15:30:00', 'Paris', 'en attente');

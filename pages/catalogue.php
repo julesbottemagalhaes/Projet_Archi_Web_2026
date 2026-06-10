@@ -19,10 +19,12 @@ require __DIR__ . '/../inc/header.php';
             stage, alternance, CDI ou mobilité internationale.
         </p>
 
-        <div class="filtres-profils">
+        <div class="filtres-profils" style="display: flex; gap: 10px; flex-wrap: wrap;">
             <input type="text" id="search-input" placeholder="Rechercher un étudiant...">
+            <input type="text" id="competence-input" placeholder="Compétence (ex: Python)">
+            <input type="text" id="ecole-input" placeholder="École ou Promotion">
             <select id="domaine-select">
-                <option value="">Tous les domaines</option>
+                <option value="">Tous les contrats</option>
                 <option value="stage">Stage</option>
                 <option value="alternance">Alternance</option>
                 <option value="cdi">CDI</option>
