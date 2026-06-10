@@ -149,10 +149,6 @@ function upload_student_photo(?array $file, ?string $existingPhoto): ?string
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : null;
 
-    if ($finfo) {
-        finfo_close($finfo);
-    }
-
     $allowed = UPLOAD_PHOTO_MIME_TYPES;
 
     if (!$mime || !isset($allowed[$mime])) {
