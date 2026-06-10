@@ -52,6 +52,9 @@ $navItems = [
     <?php if ($dataPage === 'admin'): ?>
     <script src="<?php echo htmlspecialchars($assetBase . '/js/admin.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
     <?php endif; ?>
+    <?php if ($dataPage === 'history'): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/convocation.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
     <?php if ($dataPage === 'contact'): ?>
     <script src="<?php echo htmlspecialchars($assetBase . '/js/contact.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
     <?php endif; ?>

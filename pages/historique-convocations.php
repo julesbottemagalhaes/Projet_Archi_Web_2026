@@ -21,20 +21,13 @@ require __DIR__ . '/../inc/header.php';
                     <tr>
                         <th>Étudiant</th>
                         <th>Contrat</th>
+                        <th>Date et Heure</th>
+                        <th>Lieu</th>
                         <th>Statut</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Keanu GAUTHIER</td>
-                        <td>Stage</td>
-                        <td>En attente</td>
-                    </tr>
-                    <tr>
-                        <td>Alice DUPONT</td>
-                        <td>Alternance</td>
-                        <td>Envoyée</td>
-                    </tr>
+                <tbody id="tbody-historique">
+                    <!-- Les données seront chargées via JS -->
                 </tbody>
             </table>
         </div>
