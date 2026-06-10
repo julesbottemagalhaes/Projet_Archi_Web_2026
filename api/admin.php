@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../inc/db.php';
 
-header('Content-Type: application/json');
+require_api_role('admin');
 
 if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
     http_response_code(403);

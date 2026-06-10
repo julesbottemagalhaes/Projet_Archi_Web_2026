@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['company', 'admin'];
+require __DIR__ . '/../inc/auth-check.php';
+
 $pageTitle = 'Historique — CV JUNIA';
 $metaDescription = 'Historique des convocations envoyées depuis la plateforme CV JUNIA.';
 $bodyClass = 'page-simple page-accueil';

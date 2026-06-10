@@ -1,18 +1,26 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/functions.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+start_secure_session();
+mysqli_report(MYSQLI_REPORT_OFF);
 
-$connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+$connection = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
 if ($connection->connect_error) {
     http_response_code(500);
-    die(json_encode([
-        'success' => false,
-        'message' => 'Erreur de connexion: ' . $connection->connect_error,
-    ]));
+    $message = APP_ENV === 'dev'
+        ? 'Erreur de connexion: ' . $connection->connect_error
+        : 'Erreur de connexion à la base de données.';
+
+    if (is_api_request()) {
+        json_response([
+            'success' => false,
+            'message' => $message,
+        ], 500);
+    }
+
+    die($message);
 }
 
 $connection->set_charset('utf8mb4');

@@ -22,7 +22,7 @@ require __DIR__ . '/../inc/header.php';
 
     <section class="resume-cv">
         <h2>Recherche</h2>
-        <ul>
+        <ul id="cv-domaines-recherche">
             <li>Stage</li>
             <li>Alternance</li>
         </ul>

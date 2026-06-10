@@ -1,20 +1,16 @@
 <?php
-  require __DIR__ . '/../inc/db.php';
-
-  header("Content-Type: application/json");
+  require_once __DIR__ . '/../inc/db.php';
 
   $id = $_GET['id'] ?? null;
 
   if (empty($id) || !is_numeric($id)) {
-    http_response_code(400);
-    echo json_encode(["error" => "ID invalide"]);
-    exit;
+    json_response(["error" => "ID invalide"], 400);
   }
 
   $stmt = $connection->prepare(
     "SELECT id, nom, titre, email, telephone, ville, date_naissance,
             linkedin, github, photo, biographie, langues, projets,
-            centres_interet, donnees_json
+            centres_interet, domaines_recherche, donnees_json
      FROM etudiants WHERE id = ?"
   );
   $stmt->bind_param("i", $id);
@@ -22,9 +18,7 @@
   $result = $stmt->get_result();
 
   if ($result->num_rows == 0) {
-    http_response_code(404);
-    echo json_encode(["error" => "Profil non trouvé"]);
-    exit;
+    json_response(["error" => "Profil non trouvé"], 404);
   }
 
   $row = $result->fetch_assoc();
@@ -33,8 +27,9 @@
   if (!empty($row['donnees_json'])) {
     $cv = json_decode($row['donnees_json'], true);
     if ($cv) {
-      echo json_encode($cv);
-      exit;
+      $cv['photo'] = $row['photo'] ?? ($cv['photo'] ?? '');
+      $cv['domainesRecherche'] = normalise_cv_domaines($row['domaines_recherche'] ?? ($cv['domainesRecherche'] ?? []));
+      json_response($cv);
     }
   }
 
@@ -106,13 +101,13 @@
     "dateNaissance" => $is_pro ? ($row['date_naissance'] ?? '') : null,
     "linkedin" => $is_pro ? ($row['linkedin'] ?? '') : null,
     "github" => $row['github'] ?? '',
-    "photo" => $row['photo'] ?? 'photo_profil.png',
+    "photo" => $row['photo'] ?? '',
     "profil" => $row['biographie'] ?? '',
+    "domainesRecherche" => normalise_cv_domaines($row['domaines_recherche'] ?? []),
     "competences" => $competences,
-    "langues" => json_decode($row['langues'] ?? '[]') ?? [],
+    "langues" => decode_json_array($row['langues'] ?? '[]'),
     "formations" => $formations,
     "experiences" => $experiences,
-    "projets" => json_decode($row['projets'] ?? '[]') ?? [],
-    "centresInteret" => json_decode($row['centres_interet'] ?? '[]') ?? []
+    "projets" => decode_json_array($row['projets'] ?? '[]'),
+    "centresInteret" => decode_json_array($row['centres_interet'] ?? '[]')
   ]);
-?>

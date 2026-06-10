@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['admin'];
+require __DIR__ . '/../../inc/auth-check.php';
+
 $pageTitle = 'Utilisateurs — CV JUNIA';
 $metaDescription = 'Gestion des utilisateurs de la plateforme CV JUNIA.';
 $bodyClass = 'page-simple page-accueil';

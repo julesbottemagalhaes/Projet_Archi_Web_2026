@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['admin'];
+require __DIR__ . '/../../inc/auth-check.php';
+
 $pageTitle = 'Administration — CV JUNIA';
 $metaDescription = 'Tableau de bord administrateur CV JUNIA.';
 $bodyClass = 'page-simple page-accueil';

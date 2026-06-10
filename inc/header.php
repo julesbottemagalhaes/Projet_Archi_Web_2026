@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/functions.php';
+
+start_secure_session();
+
 $siteName = 'CV JUNIA';
 $pageTitle = $pageTitle ?? $siteName;
 $metaDescription = $metaDescription ?? 'Plateforme web JUNIA pour consulter et créer des CV étudiants.';
