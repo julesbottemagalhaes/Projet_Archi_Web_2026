@@ -49,7 +49,7 @@ $navItems = [
     <script src="<?php echo htmlspecialchars($assetBase . '/js/detail-profil.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
     <script src="<?php echo htmlspecialchars($assetBase . '/js/convocation.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
     <?php endif; ?>
-    <?php if ($dataPage === 'admin'): ?>
+    <?php if (strpos($dataPage, 'admin') !== false): ?>
     <script src="<?php echo htmlspecialchars($assetBase . '/js/admin.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
     <?php endif; ?>
     <?php if ($dataPage === 'history'): ?>

@@ -20,21 +20,14 @@ require __DIR__ . '/../../inc/header.php';
                 <thead>
                     <tr>
                         <th>Entreprise</th>
-                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Message</th>
                         <th>Statut</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>DataLab</td>
-                        <td>contact@datalab.fr</td>
-                        <td>Nouvelle</td>
-                    </tr>
-                    <tr>
-                        <td>GreenTech</td>
-                        <td>rh@greentech.fr</td>
-                        <td>À traiter</td>
-                    </tr>
+                <tbody id="tbody-demandes">
+                    <!-- JS -->
                 </tbody>
             </table>
         </div>

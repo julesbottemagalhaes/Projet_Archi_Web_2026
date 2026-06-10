@@ -14,27 +14,24 @@ require __DIR__ . '/../../inc/header.php';
 <main>
     <section class="accueil-intro">
         <h2>Comptes utilisateurs</h2>
-        <p class="message-cv">La liste sera connectée à l'API d'administration.</p>
+        <div class="filtres-profils" style="margin-bottom: 1rem;">
+            <select id="filtre-type">
+                <option value="etudiants">Étudiants</option>
+                <option value="entreprises">Entreprises</option>
+            </select>
+        </div>
         <div class="tableau-simple">
             <table>
                 <thead>
                     <tr>
                         <th>Nom</th>
-                        <th>Type</th>
-                        <th>Statut</th>
+                        <th>Email</th>
+                        <th>Date de création</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Keanu GAUTHIER</td>
-                        <td>Étudiant</td>
-                        <td>Actif</td>
-                    </tr>
-                    <tr>
-                        <td>TechCorp</td>
-                        <td>Entreprise</td>
-                        <td>Actif</td>
-                    </tr>
+                <tbody id="tbody-utilisateurs">
+                    <!-- JS -->
                 </tbody>
             </table>
         </div>

@@ -21,11 +21,22 @@
     exit;
   }
 
-  $table = ($user_type == "company") ? "entreprises" : "etudiants";
-  $email_field = ($user_type == "company") ? "email_contact" : "email";
+  if ($user_type == "company") {
+      $table = "entreprises";
+      $email_field = "email_contact";
+      $nom_field = "nom";
+  } elseif ($user_type == "admin") {
+      $table = "admins";
+      $email_field = "email";
+      $nom_field = "'Administrateur' as nom";
+  } else {
+      $table = "etudiants";
+      $email_field = "email";
+      $nom_field = "nom";
+  }
 
   $stmt = $connection->prepare(
-    "SELECT id, nom, password_hash FROM $table WHERE $email_field = ?"
+    "SELECT id, $nom_field, password_hash FROM $table WHERE $email_field = ?"
   );
   $stmt->bind_param("s", $email);
   $stmt->execute();
