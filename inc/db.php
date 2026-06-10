@@ -3,8 +3,9 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/functions.php';
 
 start_secure_session();
+mysqli_report(MYSQLI_REPORT_OFF);
 
-$connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+$connection = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
 if ($connection->connect_error) {
     http_response_code(500);
