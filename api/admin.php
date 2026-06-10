@@ -3,79 +3,93 @@ require __DIR__ . '/../inc/db.php';
 
 require_api_role('admin');
 
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['error' => 'Non autorisé']);
-    exit;
-}
-
-$action = $_GET['action'] ?? '';
+$action = clean_string($_GET['action'] ?? '', 40);
 
 switch ($action) {
     case 'stats':
-        $res_etud = $connection->query("SELECT COUNT(*) as c FROM etudiants");
-        $res_entr = $connection->query("SELECT COUNT(*) as c FROM entreprises");
-        $res_conv = $connection->query("SELECT COUNT(*) as c FROM convocations");
-        $res_cont = $connection->query("SELECT COUNT(*) as c FROM demandes_contact");
-        
-        echo json_encode([
-            'etudiants' => $res_etud->fetch_assoc()['c'],
-            'entreprises' => $res_entr->fetch_assoc()['c'],
-            'convocations' => $res_conv->fetch_assoc()['c'],
-            'demandes' => $res_cont->fetch_assoc()['c']
+        $students = $connection->query('SELECT COUNT(*) AS total FROM etudiants')->fetch_assoc()['total'];
+        $companies = $connection->query('SELECT COUNT(*) AS total FROM entreprises')->fetch_assoc()['total'];
+        $convocations = $connection->query('SELECT COUNT(*) AS total FROM convocations')->fetch_assoc()['total'];
+        $requests = $connection->query('SELECT COUNT(*) AS total FROM demandes_contact')->fetch_assoc()['total'];
+
+        json_response([
+            'etudiants' => (int) $students,
+            'entreprises' => (int) $companies,
+            'convocations' => (int) $convocations,
+            'demandes' => (int) $requests,
         ]);
-        break;
 
     case 'users':
-        $type = $_GET['type'] ?? 'etudiants';
-        $table = $type === 'entreprises' ? 'entreprises' : 'etudiants';
-        $nom_field = $type === 'entreprises' ? 'nom, email_contact as email' : 'nom, email';
-        $res = $connection->query("SELECT id, $nom_field, date_creation FROM $table ORDER BY id DESC");
-        
+        $type = ($_GET['type'] ?? '') === 'entreprises' ? 'entreprises' : 'etudiants';
+        $select = $type === 'entreprises'
+            ? 'id, nom, email_contact AS email, date_creation'
+            : 'id, nom, email, date_creation';
+
+        $result = $connection->query("SELECT $select FROM $type ORDER BY id DESC");
         $users = [];
-        while ($r = $res->fetch_assoc()) {
-            $users[] = $r;
+
+        while ($row = $result->fetch_assoc()) {
+            $users[] = [
+                'id' => (int) $row['id'],
+                'nom' => $row['nom'],
+                'email' => $row['email'],
+                'date_creation' => $row['date_creation'],
+            ];
         }
-        echo json_encode($users);
-        break;
+
+        json_response($users);
 
     case 'delete_user':
-        $data = json_decode(file_get_contents("php://input"), true);
-        $id = $data['id'] ?? 0;
-        $type = $data['type'] ?? 'etudiants';
-        $table = $type === 'entreprises' ? 'entreprises' : 'etudiants';
-        
-        $stmt = $connection->prepare("DELETE FROM $table WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        
-        if ($stmt->execute()) {
-            echo json_encode(["success" => true]);
-        } else {
-            echo json_encode(["error" => "Erreur lors de la suppression"]);
+        require_http_method('POST');
+        $data = read_json_body();
+        $id = filter_var($data['id'] ?? null, FILTER_VALIDATE_INT);
+        $type = ($data['type'] ?? '') === 'entreprises' ? 'entreprises' : 'etudiants';
+
+        if (!$id) {
+            json_response(['error' => 'Identifiant invalide.'], 400);
         }
+
+        $stmt = $connection->prepare("DELETE FROM $type WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        $ok = $stmt->execute();
         $stmt->close();
-        break;
+
+        json_response($ok ? ['success' => true] : ['error' => 'Erreur lors de la suppression.'], $ok ? 200 : 500);
 
     case 'contact_requests':
-        $res = $connection->query("SELECT * FROM demandes_contact ORDER BY date_demande DESC");
-        $reqs = [];
-        while ($r = $res->fetch_assoc()) {
-            $reqs[] = $r;
+        $result = $connection->query('SELECT id, nom_entreprise, email_contact, message, statut, date_demande
+                                      FROM demandes_contact ORDER BY date_demande DESC');
+        $requests = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $requests[] = [
+                'id' => (int) $row['id'],
+                'nom_entreprise' => $row['nom_entreprise'],
+                'email_contact' => $row['email_contact'],
+                'message' => $row['message'],
+                'statut' => $row['statut'],
+                'date_demande' => $row['date_demande'],
+            ];
         }
-        echo json_encode($reqs);
-        break;
-        
+
+        json_response($requests);
+
     case 'approve_contact':
-        $data = json_decode(file_get_contents("php://input"), true);
-        $id = $data['id'] ?? 0;
+        require_http_method('POST');
+        $data = read_json_body();
+        $id = filter_var($data['id'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$id) {
+            json_response(['error' => 'Identifiant invalide.'], 400);
+        }
+
         $stmt = $connection->prepare("UPDATE demandes_contact SET statut = 'validée' WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        echo json_encode(["success" => true]);
+        $stmt->bind_param('i', $id);
+        $ok = $stmt->execute();
         $stmt->close();
-        break;
+
+        json_response($ok ? ['success' => true] : ['error' => 'Validation impossible.'], $ok ? 200 : 500);
 
     default:
-        echo json_encode(['error' => 'Action inconnue']);
+        json_response(['error' => 'Action inconnue.'], 400);
 }
-?>

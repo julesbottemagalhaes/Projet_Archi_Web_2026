@@ -1,1008 +1,344 @@
-const CLE_CV = "cv-junia-donnees";
-const CLE_BROUILLON = "cv-junia-brouillon";
-const CLE_SESSION = "cv-junia-session";
-const API_BASE = window.JUNIA_API_BASE || "api";
-const ROUTES = window.JUNIA_ROUTES || {
-    accueil: "index.php",
-    cv: "pages/detail-profil.php",
-    creer: "pages/modifier-profil.php"
-};
-const DEFAULT_PHOTO = window.JUNIA_DEFAULT_PHOTO || "photo_profil.png";
-const APP_BASE = API_BASE.replace(/\/api\/?$/, "");
-const DOMAINES_RECHERCHE = ["stage", "alternance", "cdi", "mobilite"];
+(() => {
+    const API_BASE = window.JUNIA_API_BASE || "../api";
+    const ROUTES = window.JUNIA_ROUTES || {};
+    const DRAFT_KEY = "cv-junia-brouillon";
+    const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
+    const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png"];
 
-let pagineProfils = 1;
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-const cvExemple = {
-    prenom: "Keanu",
-    nom: "GAUTHIER",
-    titre: "Étudiant ingénieur : 1re année JUNIA",
-    email: "keanu.gauthier@junia.com",
-    telephone: "",
-    ville: "Bordeaux",
-    dateNaissance: "",
-    linkedin: "https://www.linkedin.com/feed/",
-    github: "https://github.com/keanugauthier",
-    photo: DEFAULT_PHOTO,
-    profil: "",
-    domainesRecherche: ["stage", "alternance"],
-    competences: ["Programmation", "Gestion de projet", "Analyse de données"],
-    langues: ["Français : langue maternelle", "Anglais : courant"],
-    formations: [
-        {
-            titre: "Cycle ingénieur généraliste - JUNIA, Bordeaux",
-            dates: "Depuis 2025",
-            description: "Formation pluridisciplinaire dans le numérique."
-        },
-        {
-            titre: "Baccalauréat général - Lycée, Bordeaux",
-            dates: "2022 - 2025",
-            description: "Spécialités mathématiques et physique-chimie."
-        }
-    ],
-    experiences: [
-        {
-            titre: "Projet académique - Développement web",
-            dates: "2026",
-            description: "Conception d'un site vitrine pour présenter mon CV."
-        },
-        {
-            titre: "Projet étudiant - Développement d'applications mobiles",
-            dates: "2025",
-            description: "Création d'applications mobiles avec Flutter."
-        }
-    ],
-    projets: [
-        {
-            titre: "Site portfolio",
-            dates: "2026",
-            description: "Réalisation d'un site personnel pour présenter mes projets et mon CV."
-        },
-        {
-            titre: "Analyse de données",
-            dates: "2025",
-            description: "Création d'outils de visualisation de données."
-        }
-    ],
-    centresInteret: ["Surf", "Musculation", "IA"]
-};
-
-const selectionner = (selecteur, racine = document) => racine.querySelector(selecteur);
-
-const lireStockage = (cle) => {
-    try {
-        const valeur = localStorage.getItem(cle);
-        return valeur ? JSON.parse(valeur) : null;
-    } catch {
-        localStorage.removeItem(cle);
-        return null;
-    }
-};
-
-const lireSession = () => {
-    try {
-        return JSON.parse(sessionStorage.getItem(CLE_SESSION)) || null;
-    } catch {
-        return null;
-    }
-};
-
-const sauvegarderSession = (session) => {
-    sessionStorage.setItem(CLE_SESSION, JSON.stringify(session));
-};
-
-const effacerSession = () => {
-    sessionStorage.removeItem(CLE_SESSION);
-};
-
-const estEmailJunia = (email) => /^[^\s@]+@junia\.com$/i.test(email);
-
-const estTelephoneValide = (telephone) => telephone === "" || /^[0-9]{2}( [0-9]{2}){4}$/.test(telephone);
-
-const formaterTelephone = (valeur) => {
-    const chiffres = valeur.replace(/\D/g, "").slice(0, 10);
-    return chiffres.match(/.{1,2}/g)?.join(" ") || "";
-};
-
-const formaterDate = (date) => {
-    if (!date) return "";
-    const dateAFormater = new Date(`${date}T00:00:00`);
-    if (Number.isNaN(dateAFormater.getTime())) return "";
-    return new Intl.DateTimeFormat("fr-FR").format(dateAFormater);
-};
-
-const nettoyerTexte = (valeur) => (typeof valeur === "string" ? valeur.trim() : "");
-
-const normaliserListe = (liste) => Array.isArray(liste)
-    ? liste.map(nettoyerTexte).filter(Boolean)
-    : [];
-
-const normaliserEntrees = (entrees) => Array.isArray(entrees)
-    ? entrees
-        .map((entree) => ({
-            titre: nettoyerTexte(entree.titre),
-            dates: nettoyerTexte(entree.dates),
-            description: nettoyerTexte(entree.description)
-        }))
-        .filter((entree) => entree.titre || entree.dates || entree.description)
-    : [];
-
-const normaliserDomaines = (domaines) => {
-    if (typeof domaines === "string") {
-        try {
-            const domainesJson = JSON.parse(domaines);
-            domaines = Array.isArray(domainesJson) ? domainesJson : [domaines];
-        } catch {
-            domaines = [domaines];
-        }
-    }
-
-    return Array.isArray(domaines)
-        ? [...new Set(domaines.map(nettoyerTexte).map((domaine) => domaine.toLowerCase()))]
-            .filter((domaine) => DOMAINES_RECHERCHE.includes(domaine))
-        : [];
-};
-
-const resoudrePhoto = (photo) => {
-    const chemin = nettoyerTexte(photo);
-    if (!chemin) return DEFAULT_PHOTO;
-    if (/^(https?:|data:|\/)/i.test(chemin)) return chemin;
-    return `${APP_BASE}/${chemin.replace(/^\/+/, "")}`;
-};
-
-const normaliserCv = (cv) => ({
-    prenom: nettoyerTexte(cv.prenom),
-    nom: nettoyerTexte(cv.nom),
-    titre: nettoyerTexte(cv.titre),
-    email: nettoyerTexte(cv.email),
-    telephone: formaterTelephone(nettoyerTexte(cv.telephone)),
-    ville: nettoyerTexte(cv.ville),
-    dateNaissance: nettoyerTexte(cv.dateNaissance),
-    linkedin: nettoyerTexte(cv.linkedin),
-    github: nettoyerTexte(cv.github),
-    photo: nettoyerTexte(cv.photo) || "",
-    profil: nettoyerTexte(cv.profil),
-    domainesRecherche: normaliserDomaines(cv.domainesRecherche ?? cv.domaines_recherche ?? cv.domaines),
-    competences: normaliserListe(cv.competences),
-    langues: normaliserListe(cv.langues),
-    formations: normaliserEntrees(cv.formations),
-    experiences: normaliserEntrees(cv.experiences),
-    projets: normaliserEntrees(cv.projets),
-    centresInteret: normaliserListe(cv.centresInteret)
-});
-
-const obtenirCvActif = () => normaliserCv(lireStockage(CLE_CV) || cvExemple);
-
-const creerElement = (balise, texte, classe) => {
-    const element = document.createElement(balise);
-    if (classe) element.className = classe;
-    if (texte) element.textContent = texte;
-    return element;
-};
-
-const creerLien = (texte, href) => {
-    const lien = document.createElement("a");
-    lien.textContent = texte;
-    lien.href = href;
-    if (!href.startsWith("mailto:")) {
-        lien.target = "_blank";
-        lien.rel = "noopener noreferrer";
-    }
-    return lien;
-};
-
-const afficherNotification = (message) => {
-    selectionner(".notification")?.remove();
-    const notification = creerElement("div", message, "notification");
-    notification.setAttribute("role", "status");
-    document.body.append(notification);
-    setTimeout(() => notification.remove(), 3000);
-};
-
-const remplirListeSimple = (selecteur, elements) => {
-    const liste = selectionner(selecteur);
-    if (!liste) return;
-    liste.replaceChildren();
-    elements.forEach((texte) => liste.append(creerElement("li", texte)));
-};
-
-const remplirListeLiens = (selecteur, liens) => {
-    const liste = selectionner(selecteur);
-    if (!liste) return;
-    liste.replaceChildren();
-    liens.forEach(({ texte, href }) => {
-        if (!href) return;
-        const item = document.createElement("li");
-        item.append(creerLien(texte, href));
-        liste.append(item);
-    });
-};
-
-const creerArticle = ({ titre, dates, description }) => {
-    const article = document.createElement("article");
-    if (titre) article.append(creerElement("h3", titre));
-    if (dates) {
-        const paragrapheDate = creerElement("p", "", "dates");
-        paragrapheDate.append(creerElement("em", dates));
-        article.append(paragrapheDate);
-    }
-    if (description) article.append(creerElement("p", description));
-    return article;
-};
-
-const remplirArticles = (selecteur, articles) => {
-    const conteneur = selectionner(selecteur);
-    if (!conteneur) return;
-    conteneur.replaceChildren();
-    articles.forEach((article) => conteneur.append(creerArticle(article)));
-};
-
-const remplirProjets = (selecteur, projets) => {
-    const liste = selectionner(selecteur);
-    if (!liste) return;
-    liste.replaceChildren();
-    projets.forEach((projet) => {
-        const item = document.createElement("li");
-        const titre = creerElement("strong", projet.titre || "Projet");
-        item.append(titre);
-        if (projet.description) item.append(document.createTextNode(` — ${projet.description}`));
-        if (projet.dates) {
-            const dates = creerElement("span", "", "dates");
-            dates.append(creerElement("em", projet.dates));
-            item.append(document.createTextNode(" "), dates);
-        }
-        liste.append(item);
-    });
-};
-
-const reglerVisibiliteSection = (selecteur, visible) => {
-    const section = selectionner(selecteur);
-    if (section) section.hidden = !visible;
-};
-
-const afficherCv = () => {
-    const cv = obtenirCvActif();
-    const cvPersonnalise = Boolean(lireStockage(CLE_CV));
-    const nomComplet = [cv.prenom, cv.nom].filter(Boolean).join(" ") || "Prénom Nom";
-
-    selectionner("#cv-nom").textContent = nomComplet;
-    selectionner("#cv-titre").textContent = cv.titre || "Titre du CV";
-
-    const photo = selectionner("#cv-photo");
-    photo.onerror = () => {
-        photo.onerror = null;
-        photo.src = DEFAULT_PHOTO;
+    const exampleCv = {
+        prenom: "Keanu",
+        nom: "GAUTHIER",
+        titre: "Étudiant ingénieur : 1re année JUNIA",
+        email: "keanu.gauthier@junia.com",
+        telephone: "06 12 34 56 78",
+        ville: "Bordeaux",
+        dateNaissance: "",
+        linkedin: "https://www.linkedin.com/in/keanu-gauthier",
+        github: "https://github.com/keanugauthier",
+        photo: "",
+        profil: "Étudiant ingénieur passionné par le développement web, je recherche une opportunité pour renforcer mes compétences en équipe projet.",
+        domainesRecherche: ["stage", "alternance"],
+        competences: ["PHP", "MySQL", "JavaScript", "Gestion de projet"],
+        langues: ["Français : langue maternelle", "Anglais : courant"],
+        formations: [
+            { titre: "Cycle ingénieur généraliste - JUNIA, Bordeaux", dates: "Depuis 2025", description: "Formation pluridisciplinaire orientée numérique." }
+        ],
+        experiences: [
+            { titre: "Projet académique - Développement web", dates: "2026", description: "Conception d'une plateforme CV avec PHP, MySQL et JavaScript vanilla." }
+        ],
+        projets: [
+            { titre: "Portfolio étudiant", dates: "2026", description: "Site personnel de présentation des projets et compétences." }
+        ],
+        centresInteret: ["Innovation", "Sport", "Veille technologique"]
     };
-    photo.src = resoudrePhoto(cv.photo);
-    photo.alt = `Photo de ${nomComplet}`;
 
-    const contact = selectionner("#cv-contact");
-    contact.replaceChildren();
-    if (cv.email) {
-        const item = document.createElement("li");
-        item.append(creerLien(cv.email, `mailto:${cv.email}`));
-        contact.append(item);
-    }
-    [cv.telephone, cv.ville].filter(Boolean).forEach((texte) => {
-        contact.append(creerElement("li", texte));
-    });
-    if (cv.linkedin) {
-        const item = document.createElement("li");
-        item.append(creerLien("LinkedIn", cv.linkedin));
-        contact.append(item);
-    }
-
-    remplirListeSimple("#cv-competences", cv.competences);
-    remplirListeSimple("#cv-langues", cv.langues);
-    remplirListeSimple("#cv-centres-interet", cv.centresInteret);
-    remplirListeSimple(
-        "#cv-domaines-recherche",
-        cv.domainesRecherche.map((domaine) => domaine === "cdi" ? "CDI" : domaine.charAt(0).toUpperCase() + domaine.slice(1))
-    );
-    remplirListeLiens("#cv-liens", [
-        { texte: "GitHub", href: cv.github },
-        { texte: "LinkedIn", href: cv.linkedin }
-    ]);
-
-    const infos = [];
-    if (cv.telephone) infos.push(`Téléphone : ${cv.telephone}`);
-    if (cv.dateNaissance) infos.push(`Né(e) le ${formaterDate(cv.dateNaissance)}`);
-    remplirListeSimple("#cv-infos", infos);
-    reglerVisibiliteSection("#section-infos", infos.length > 0);
-
-    selectionner("#cv-profil").textContent = cv.profil;
-    reglerVisibiliteSection("#section-profil", cv.profil.length > 0);
-
-    remplirArticles("#cv-formations", cv.formations);
-    remplirArticles("#cv-experiences", cv.experiences);
-    remplirProjets("#cv-projets", cv.projets);
-    reglerVisibiliteSection("#formations", cv.formations.length > 0);
-    reglerVisibiliteSection("#experiences", cv.experiences.length > 0);
-    reglerVisibiliteSection("#projets", cv.projets.length > 0);
-    reglerVisibiliteSection("#centres-interet", cv.centresInteret.length > 0);
-
-    selectionner("#cv-message").textContent = cvPersonnalise
-        ? "CV personnalisé affiché."
-        : "CV d'exemple affiché.";
-
-    const boutonReset = selectionner("#reinitialiser-cv");
-    boutonReset.hidden = !cvPersonnalise;
-    boutonReset.onclick = () => {
-        localStorage.removeItem(CLE_CV);
-        afficherNotification("Retour au CV d'exemple.");
-        afficherCv();
+    const notify = (message, type = "info") => {
+        $(".notification")?.remove();
+        const notification = document.createElement("div");
+        notification.className = `notification notification-${type}`;
+        notification.setAttribute("role", "status");
+        notification.textContent = message;
+        document.body.append(notification);
+        setTimeout(() => notification.remove(), 3200);
     };
-};
 
-const afficherBoutonServeur = () => {
-    const session = lireSession();
-    const btn = selectionner("#charger-serveur");
-    if (!btn) return;
-    btn.hidden = !session || session.type !== "student";
-    btn.addEventListener("click", chargerCvDepuisServeur);
-};
+    const text = (value) => (typeof value === "string" ? value.trim() : "");
 
-const lignesTexte = (valeur) => nettoyerTexte(valeur)
-    .split("\n")
-    .map(nettoyerTexte)
-    .filter(Boolean);
+    const formatPhone = (value) => {
+        const digits = text(value).replace(/\D/g, "").slice(0, 10);
+        return digits.match(/.{1,2}/g)?.join(" ") || "";
+    };
 
-const lignesEntrees = (valeur) => lignesTexte(valeur)
-    .map((ligne) => {
-        const morceaux = ligne.split("|").map(nettoyerTexte);
+    const lines = (value) => text(value).split("\n").map(text).filter(Boolean);
+
+    const entryLines = (value) => lines(value).map((line) => {
+        const parts = line.split("|").map(text);
         return {
-            titre: morceaux[0] || "",
-            dates: morceaux[1] || "",
-            description: morceaux.slice(2).join(" | ")
+            titre: parts[0] || "",
+            dates: parts[1] || "",
+            description: parts.slice(2).join(" | ")
         };
-    })
-    .filter((entree) => entree.titre || entree.dates || entree.description);
+    }).filter((entry) => entry.titre || entry.dates || entry.description);
 
-const lireChamp = (formulaire, nom) => nettoyerTexte(formulaire.elements[nom]?.value || "");
+    const listToTextarea = (items = []) => items.join("\n");
+    const entriesToTextarea = (items = []) => items
+        .map((entry) => [entry.titre, entry.dates, entry.description].filter(Boolean).join(" | "))
+        .join("\n");
 
-const construireCvDepuisFormulaire = (formulaire) => normaliserCv({
-    prenom: lireChamp(formulaire, "prenom"),
-    nom: lireChamp(formulaire, "nom").toUpperCase(),
-    titre: lireChamp(formulaire, "titre"),
-    email: lireChamp(formulaire, "email"),
-    telephone: lireChamp(formulaire, "telephone"),
-    ville: lireChamp(formulaire, "ville"),
-    dateNaissance: lireChamp(formulaire, "date_naissance"),
-    linkedin: lireChamp(formulaire, "linkedin"),
-    github: lireChamp(formulaire, "github"),
-    photo: lireChamp(formulaire, "photo"),
-    profil: lireChamp(formulaire, "profil"),
-    domainesRecherche: Array.from(formulaire.querySelectorAll('input[name="domaines_recherche[]"]:checked')).map((input) => input.value),
-    competences: lignesTexte(lireChamp(formulaire, "competences")),
-    langues: lignesTexte(lireChamp(formulaire, "langues")),
-    formations: lignesEntrees(lireChamp(formulaire, "formations")),
-    experiences: lignesEntrees(lireChamp(formulaire, "experiences")),
-    projets: lignesEntrees(lireChamp(formulaire, "projets")),
-    centresInteret: lignesTexte(lireChamp(formulaire, "centres_interet"))
-});
-
-const listeVersTextarea = (liste) => liste.join("\n");
-
-const entreesVersTextarea = (entrees) => entrees
-    .map((entree) => [entree.titre, entree.dates, entree.description].filter(Boolean).join(" | "))
-    .join("\n");
-
-const remplirFormulaire = (formulaire, cv) => {
-    formulaire.elements.prenom.value = cv.prenom;
-    formulaire.elements.nom.value = cv.nom;
-    formulaire.elements.titre.value = cv.titre;
-    formulaire.elements.email.value = cv.email;
-    formulaire.elements.telephone.value = cv.telephone;
-    formulaire.elements.ville.value = cv.ville;
-    formulaire.elements.date_naissance.value = cv.dateNaissance;
-    formulaire.elements.linkedin.value = cv.linkedin;
-    formulaire.elements.github.value = cv.github;
-    formulaire.elements.photo.value = cv.photo;
-    formulaire.querySelectorAll('input[name="domaines_recherche[]"]').forEach((input) => {
-        input.checked = cv.domainesRecherche.includes(input.value);
+    const normaliseCv = (cv = {}) => ({
+        prenom: text(cv.prenom),
+        nom: text(cv.nom).toUpperCase(),
+        titre: text(cv.titre),
+        email: text(cv.email).toLowerCase(),
+        telephone: formatPhone(cv.telephone),
+        ville: text(cv.ville),
+        dateNaissance: text(cv.dateNaissance || cv.date_naissance),
+        linkedin: text(cv.linkedin),
+        github: text(cv.github),
+        photo: text(cv.photo),
+        profil: text(cv.profil),
+        domainesRecherche: Array.isArray(cv.domainesRecherche) ? cv.domainesRecherche : [],
+        competences: Array.isArray(cv.competences) ? cv.competences.map(text).filter(Boolean) : [],
+        langues: Array.isArray(cv.langues) ? cv.langues.map(text).filter(Boolean) : [],
+        formations: Array.isArray(cv.formations) ? cv.formations : [],
+        experiences: Array.isArray(cv.experiences) ? cv.experiences : [],
+        projets: Array.isArray(cv.projets) ? cv.projets : [],
+        centresInteret: Array.isArray(cv.centresInteret) ? cv.centresInteret.map(text).filter(Boolean) : []
     });
-    const photoActuelle = selectionner("#photo-actuelle", formulaire);
-    if (photoActuelle) {
-        photoActuelle.textContent = cv.photo
-            ? `Photo actuelle : ${cv.photo}`
-            : "Formats acceptés : JPG ou PNG, 2 Mo maximum.";
-    }
-    formulaire.elements.profil.value = cv.profil;
-    formulaire.elements.competences.value = listeVersTextarea(cv.competences);
-    formulaire.elements.langues.value = listeVersTextarea(cv.langues);
-    formulaire.elements.formations.value = entreesVersTextarea(cv.formations);
-    formulaire.elements.experiences.value = entreesVersTextarea(cv.experiences);
-    formulaire.elements.projets.value = entreesVersTextarea(cv.projets);
-    formulaire.elements.centres_interet.value = listeVersTextarea(cv.centresInteret);
-};
 
-const mettreAJourEtatEmail = (champEmail, erreurEmail) => {
-    const email = champEmail.value.trim();
-    erreurEmail.classList.remove("succes");
-
-    if (email === "") {
-        erreurEmail.textContent = "";
-        champEmail.classList.remove("invalide", "valide");
-        champEmail.removeAttribute("aria-invalid");
-        champEmail.setCustomValidity("");
-        return false;
-    }
-
-    if (!estEmailJunia(email)) {
-        erreurEmail.textContent = "Utilisez une adresse @junia.com.";
-        champEmail.classList.add("invalide");
-        champEmail.classList.remove("valide");
-        champEmail.setAttribute("aria-invalid", "true");
-        champEmail.setCustomValidity("Merci d'utiliser votre adresse JUNIA.");
-        return false;
-    }
-
-    erreurEmail.textContent = "Email JUNIA valide.";
-    erreurEmail.classList.add("succes");
-    champEmail.classList.add("valide");
-    champEmail.classList.remove("invalide");
-    champEmail.removeAttribute("aria-invalid");
-    champEmail.setCustomValidity("");
-    return true;
-};
-
-const mettreAJourEtatTelephone = (champTelephone, erreurTelephone) => {
-    champTelephone.value = formaterTelephone(champTelephone.value);
-
-    if (!estTelephoneValide(champTelephone.value)) {
-        erreurTelephone.textContent = "Format attendu : 06 12 34 56 78.";
-        champTelephone.classList.add("invalide");
-        champTelephone.classList.remove("valide");
-        champTelephone.setAttribute("aria-invalid", "true");
-        champTelephone.setCustomValidity("Le téléphone doit contenir 10 chiffres.");
-        return false;
-    }
-
-    erreurTelephone.textContent = champTelephone.value ? "Téléphone valide." : "";
-    erreurTelephone.classList.toggle("succes", Boolean(champTelephone.value));
-    champTelephone.classList.toggle("valide", Boolean(champTelephone.value));
-    champTelephone.classList.remove("invalide");
-    champTelephone.removeAttribute("aria-invalid");
-    champTelephone.setCustomValidity("");
-    return true;
-};
-
-const mettreAJourCompteurProfil = (champProfil, compteurProfil) => {
-    const limite = Number(champProfil.getAttribute("maxlength")) || 450;
-    const longueur = champProfil.value.length;
-    compteurProfil.textContent = `${longueur} / ${limite} caractères`;
-    compteurProfil.classList.toggle("attention", longueur >= limite * 0.9);
-};
-
-const afficherApercuRapide = (cv) => {
-    const conteneur = selectionner("#apercu-contenu");
-    if (!conteneur) return;
-    conteneur.replaceChildren();
-
-    const nomComplet = [cv.prenom || "Prénom", cv.nom || "NOM"].join(" ");
-    conteneur.append(creerElement("h3", nomComplet));
-    conteneur.append(creerElement("p", cv.titre || "Titre du CV"));
-
-    const details = [cv.email, cv.telephone, cv.ville].filter(Boolean).join(" · ");
-    if (details) conteneur.append(creerElement("p", details));
-
-    if (cv.profil) {
-        conteneur.append(creerElement("h4", "Profil"));
-        conteneur.append(creerElement("p", cv.profil));
-    }
-
-    if (cv.competences.length > 0) {
-        conteneur.append(creerElement("h4", "Compétences"));
-        const liste = document.createElement("ul");
-        cv.competences.slice(0, 5).forEach((competence) => liste.append(creerElement("li", competence)));
-        conteneur.append(liste);
-    }
-};
-
-// === BACKEND : AUTHENTIFICATION ===
-
-async function login(email, password, userType) {
-    try {
-        const response = await fetch(`${API_BASE}/login.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ email, password, user_type: userType })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            sauvegarderSession(data.user);
-            afficherSectionConnexion();
-            chargerProfils(1);
-            afficherNotification(`Connecté en tant que ${data.user.nom} !`);
-        } else {
-            const erreur = selectionner("#conn-erreur");
-            if (erreur) erreur.textContent = data.error;
+    const readDraft = () => {
+        try {
+            return JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+        } catch {
+            localStorage.removeItem(DRAFT_KEY);
+            return null;
         }
-    } catch {
-        const erreur = selectionner("#conn-erreur");
-        if (erreur) erreur.textContent = "Erreur réseau.";
-    }
-}
-
-async function deconnexion() {
-    try {
-        await fetch(`${API_BASE}/logout.php`, {
-            method: "POST",
-            credentials: "include"
-        });
-    } catch {
-        // La session locale est tout de même nettoyée côté navigateur.
-    }
-
-    effacerSession();
-    afficherSectionConnexion();
-    chargerProfils(1);
-    afficherNotification("Déconnecté.");
-}
-
-async function inscrireEtudiant(donnees) {
-    const response = await fetch(`${API_BASE}/register.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(donnees)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.error || "Inscription impossible.");
-    }
-
-    sauvegarderSession(data.user);
-    return data;
-}
-
-// === BACKEND : CV ===
-
-async function sauvegarderCvBackend(cv, photoFile = null) {
-    const session = lireSession();
-    if (session && session.type !== "student") {
-        throw new Error("Connexion étudiant requise.");
-    }
-
-    const options = {
-        method: "POST",
-        credentials: "include"
     };
 
-    if (photoFile) {
-        const formData = new FormData();
-        formData.append("cv", JSON.stringify(cv));
-        formData.append("photo", photoFile);
-        options.body = formData;
-    } else {
-        options.headers = { "Content-Type": "application/json" };
-        options.body = JSON.stringify(cv);
-    }
-
-    const response = await fetch(`${API_BASE}/enregistrer-cv.php`, options);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.error || "Impossible d'enregistrer le CV.");
-    }
-
-    if (data.cv) {
-        localStorage.setItem(CLE_CV, JSON.stringify(normaliserCv(data.cv)));
-    }
-
-    afficherNotification("CV sauvegardé sur le serveur !");
-    return data.cv ? normaliserCv(data.cv) : cv;
-}
-
-async function chargerCvDepuisServeur() {
-    const session = lireSession();
-    if (!session || session.type !== "student") return;
-
-    try {
-        const response = await fetch(`${API_BASE}/student-profile.php`, {
-            credentials: "include"
-        });
-
-        if (!response.ok) throw new Error("Réponse non OK");
-
-        const cv = await response.json();
-        localStorage.setItem(CLE_CV, JSON.stringify(normaliserCv(cv)));
-        afficherNotification("CV chargé depuis le serveur.");
-        afficherCv();
-    } catch {
-        afficherNotification("Impossible de charger le CV depuis le serveur.");
-    }
-}
-
-async function chargerCvFormulaireDepuisServeur(formulaire, callbackMiseAJour) {
-    try {
-        const response = await fetch(`${API_BASE}/student-profile.php`, {
-            credentials: "include"
-        });
-
-        if (!response.ok) return;
-
-        const cv = normaliserCv(await response.json());
-        remplirFormulaire(formulaire, cv);
-        localStorage.setItem(CLE_CV, JSON.stringify(cv));
-        localStorage.removeItem(CLE_BROUILLON);
-        callbackMiseAJour();
-        afficherNotification("CV chargé depuis le serveur.");
-    } catch {
-        afficherNotification("Impossible de préremplir le CV serveur.");
-    }
-}
-
-// === BACKEND : PROFILS ===
-
-async function chargerProfils(page = 1) {
-    pagineProfils = page;
-    const search = selectionner("#search-input")?.value ?? "";
-    const domaine = selectionner("#domaine-select")?.value ?? "";
-
-    let url = `${API_BASE}/profils.php?page=${page}`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (domaine) url += `&domaine=${encodeURIComponent(domaine)}`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error();
-        const profils = await response.json();
-        afficherProfils(profils, page);
-    } catch {
-        const grille = selectionner("#grille-profils");
-        if (grille) grille.innerHTML = "<p>Impossible de contacter le serveur. Vérifiez que XAMPP est démarré.</p>";
-    }
-}
-
-function changerPage(delta) {
-    chargerProfils(pagineProfils + delta);
-}
-
-function afficherProfils(profils, page) {
-    const grille = selectionner("#grille-profils");
-    if (!grille) return;
-
-    grille.replaceChildren();
-
-    if (profils.length === 0) {
-        grille.append(creerElement("p", "Aucun profil trouvé."));
-    } else {
-        const session = lireSession();
-        profils.forEach((profil) => grille.append(creerCarteEtudiant(profil, session)));
-    }
-
-    const btnPrev = selectionner("#btn-prev");
-    const btnNext = selectionner("#btn-next");
-    const pageInfo = selectionner("#page-info");
-
-    if (btnPrev) btnPrev.hidden = page <= 1;
-    if (btnNext) btnNext.hidden = profils.length < 10;
-    if (pageInfo) pageInfo.textContent = profils.length > 0 ? `Page ${page}` : "";
-}
-
-function creerCarteEtudiant(profil, session) {
-    const domaines = Array.isArray(profil.domaines) ? profil.domaines : [];
-
-    const card = document.createElement("div");
-    card.className = "profil-card";
-
-    const header = document.createElement("div");
-    header.className = "profil-card-header";
-
-    const avatar = creerElement("div", profil.nom.charAt(0).toUpperCase(), "profil-card-avatar");
-    header.append(avatar, creerElement("h3", profil.nom));
-    card.append(header);
-
-    if (profil.biographie) card.append(creerElement("p", profil.biographie));
-
-    if (domaines.length > 0) {
-        const tags = document.createElement("div");
-        tags.className = "profil-domaines";
-        domaines.forEach((d) => tags.append(creerElement("span", d, "tag")));
-        card.append(tags);
-    }
-
-    const peutConvoquer = session?.type === "company";
-    const btn = document.createElement("button");
-    btn.textContent = "Convoquer";
-    btn.className = "bouton-convoquer";
-    btn.disabled = !peutConvoquer;
-    btn.title = peutConvoquer ? "" : "Connexion entreprise requise";
-    if (peutConvoquer) btn.addEventListener("click", () => convoquer(profil.id));
-    card.append(btn);
-
-    return card;
-}
-
-async function convoquer(etudiantId) {
-    const typeContrat = prompt("Type de contrat ? (stage, alternance, cdi, mobilité)");
-    if (!typeContrat) return;
-
-    const message = prompt("Message pour l'étudiant (optionnel) :") ?? "";
-
-    try {
-        const response = await fetch(`${API_BASE}/convocation.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ etudiant_id: etudiantId, type_contrat: typeContrat, message })
-        });
-
-        const data = await response.json();
-        afficherNotification(response.ok ? "Convocation envoyée !" : data.error);
-    } catch {
-        afficherNotification("Erreur réseau.");
-    }
-}
-
-// === UI : SECTION CONNEXION ===
-
-function afficherSectionConnexion() {
-    const conteneur = selectionner("#connexion-contenu");
-    if (!conteneur) return;
-
-    const session = lireSession();
-    conteneur.replaceChildren();
-
-    if (session) {
-        let typeStr = "Étudiant";
-        if (session.type === "company") typeStr = "Entreprise";
-        if (session.type === "admin") typeStr = "Administration";
-        conteneur.append(creerElement("p", `Connecté en tant que ${session.nom} (${typeStr}).`));
-
-        const actions = document.createElement("div");
-        actions.className = "actions-ligne";
-        actions.style.marginTop = "1rem";
-
-        if (session.type === "student") {
-            const lienCv = document.createElement("a");
-            lienCv.href = ROUTES.creer;
-            lienCv.className = "bouton bouton-secondaire";
-            lienCv.textContent = "Modifier mon CV";
-            actions.append(lienCv);
-        }
-
-        const btn = document.createElement("button");
-        btn.textContent = "Se déconnecter";
-        btn.className = "bouton-discret";
-        btn.type = "button";
-        btn.addEventListener("click", deconnexion);
-        actions.append(btn);
-        conteneur.append(actions);
-    } else {
-        const form = document.createElement("form");
-        form.id = "form-connexion";
-        form.innerHTML = `
-            <div class="grille-formulaire">
-                <div>
-                    <label for="conn-email">Email</label>
-                    <input type="email" id="conn-email" required>
-                </div>
-                <div>
-                    <label for="conn-password">Mot de passe</label>
-                    <input type="password" id="conn-password" required>
-                </div>
-            </div>
-            <fieldset>
-                <legend>Type de compte</legend>
-                <label><input type="radio" name="conn-type" value="student" checked> Étudiant</label>
-                <label><input type="radio" name="conn-type" value="company"> Entreprise</label>
-                <label><input type="radio" name="conn-type" value="admin"> Administration</label>
-            </fieldset>
-            <div class="actions-ligne" style="margin-top:1rem">
-                <button type="submit">Se connecter</button>
-            </div>
-            <p id="conn-erreur" class="erreur" aria-live="polite" style="margin-top:.5rem"></p>
-        `;
-
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const email = form.querySelector("#conn-email").value;
-            const password = form.querySelector("#conn-password").value;
-            const userType = form.querySelector('input[name="conn-type"]:checked').value;
-            await login(email, password, userType);
-        });
-
-        conteneur.append(form);
-    }
-}
-
-const initialiserInscription = () => {
-    const formulaire = selectionner("#form-inscription");
-    if (!formulaire) return;
-
-    const message = selectionner("#inscription-message");
-
-    formulaire.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        if (!formulaire.reportValidity()) return;
-
-        const donnees = {
-            prenom: lireChamp(formulaire, "prenom"),
-            nom: lireChamp(formulaire, "nom"),
-            email: lireChamp(formulaire, "email"),
-            password: formulaire.elements.password.value,
-            consentement: formulaire.elements.consentement.checked
-        };
-
-        if (!estEmailJunia(donnees.email)) {
-            message.textContent = "Utilisez une adresse @junia.com.";
-            return;
-        }
-
-        message.textContent = "Création du compte...";
-
-        try {
-            await inscrireEtudiant(donnees);
-            message.textContent = "Compte créé. Redirection vers votre CV...";
-            afficherNotification("Compte étudiant créé.");
-            window.location.href = ROUTES.creer;
-        } catch (error) {
-            message.textContent = error.message;
-        }
+    const buildCv = (form) => normaliseCv({
+        prenom: form.elements.prenom.value,
+        nom: form.elements.nom.value,
+        titre: form.elements.titre.value,
+        email: form.elements.email.value,
+        telephone: form.elements.telephone.value,
+        ville: form.elements.ville.value,
+        dateNaissance: form.elements.date_naissance.value,
+        linkedin: form.elements.linkedin.value,
+        github: form.elements.github.value,
+        photo: form.elements.photo.value,
+        profil: form.elements.profil.value,
+        domainesRecherche: $$("input[name='domaines_recherche[]']:checked", form).map((input) => input.value),
+        competences: lines(form.elements.competences.value),
+        langues: lines(form.elements.langues.value),
+        formations: entryLines(form.elements.formations.value),
+        experiences: entryLines(form.elements.experiences.value),
+        projets: entryLines(form.elements.projets.value),
+        centresInteret: lines(form.elements.centres_interet.value)
     });
-};
 
-const initialiserSuppressionCompte = () => {
-    const formulaire = selectionner("#form-suppression-compte");
-    if (!formulaire) return;
+    const fillForm = (form, cv) => {
+        form.elements.prenom.value = cv.prenom;
+        form.elements.nom.value = cv.nom;
+        form.elements.titre.value = cv.titre;
+        form.elements.email.value = cv.email;
+        form.elements.telephone.value = cv.telephone;
+        form.elements.ville.value = cv.ville;
+        form.elements.date_naissance.value = cv.dateNaissance;
+        form.elements.linkedin.value = cv.linkedin;
+        form.elements.github.value = cv.github;
+        form.elements.photo.value = cv.photo;
+        form.elements.profil.value = cv.profil;
+        form.elements.competences.value = listToTextarea(cv.competences);
+        form.elements.langues.value = listToTextarea(cv.langues);
+        form.elements.formations.value = entriesToTextarea(cv.formations);
+        form.elements.experiences.value = entriesToTextarea(cv.experiences);
+        form.elements.projets.value = entriesToTextarea(cv.projets);
+        form.elements.centres_interet.value = listToTextarea(cv.centresInteret);
 
-    const message = selectionner("#suppression-message");
+        $$("input[name='domaines_recherche[]']", form).forEach((input) => {
+            input.checked = cv.domainesRecherche.includes(input.value);
+        });
 
-    formulaire.addEventListener("submit", async (event) => {
-        event.preventDefault();
+        const photoInfo = $("#photo-actuelle", form);
+        if (photoInfo) {
+            photoInfo.textContent = cv.photo
+                ? `Photo actuelle : ${cv.photo}`
+                : "Formats acceptés : JPG ou PNG, 2 Mo maximum.";
+        }
+    };
 
-        if (!formulaire.reportValidity()) return;
+    const updateEmailState = (form) => {
+        const input = form.elements.email;
+        const error = $("#erreur-email", form);
+        const valid = /^[^\s@]+@junia\.com$/i.test(input.value.trim());
 
-        message.textContent = "Suppression du compte...";
+        input.classList.toggle("valide", valid);
+        input.classList.toggle("invalide", input.value.trim() !== "" && !valid);
+        input.setCustomValidity(valid ? "" : "Merci d'utiliser une adresse @junia.com.");
+        error.textContent = input.value.trim() === "" || valid ? "" : "Utilisez une adresse @junia.com.";
+        return valid;
+    };
 
-        try {
-            const response = await fetch(`${API_BASE}/delete-account.php`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    password: formulaire.elements.password.value,
-                    confirmation: formulaire.elements.confirmation.checked
-                })
-            });
+    const updatePhoneState = (form) => {
+        const input = form.elements.telephone;
+        const error = $("#erreur-telephone", form);
+        input.value = formatPhone(input.value);
 
-            const data = await response.json();
+        const valid = input.value === "" || /^[0-9]{2}( [0-9]{2}){4}$/.test(input.value);
+        input.classList.toggle("valide", input.value !== "" && valid);
+        input.classList.toggle("invalide", !valid);
+        input.setCustomValidity(valid ? "" : "Le téléphone doit contenir 10 chiffres.");
+        error.textContent = valid ? "" : "Format attendu : 06 12 34 56 78.";
+        return valid;
+    };
 
-            if (!response.ok) {
-                throw new Error(data.error || "Suppression impossible.");
+    const updateCounter = (form) => {
+        const input = form.elements.profil;
+        const counter = $("#compteur-profil", form);
+        const max = Number(input.getAttribute("maxlength")) || 450;
+        counter.textContent = `${input.value.length} / ${max} caractères`;
+        counter.classList.toggle("attention", input.value.length >= max * 0.9);
+    };
+
+    const validatePhoto = (form) => {
+        const input = form.elements.photo_upload;
+        const info = $("#photo-actuelle", form);
+        const file = input?.files?.[0] || null;
+
+        if (!file) {
+            input?.setCustomValidity("");
+            if (info && !form.elements.photo.value) {
+                info.textContent = "Formats acceptés : JPG ou PNG, 2 Mo maximum.";
             }
-
-            localStorage.removeItem(CLE_CV);
-            localStorage.removeItem(CLE_BROUILLON);
-            effacerSession();
-            message.textContent = "Compte supprimé. Redirection...";
-            afficherNotification("Compte supprimé.");
-            window.location.href = ROUTES.accueil;
-        } catch (error) {
-            message.textContent = error.message;
+            return true;
         }
-    });
-};
 
-// === INITIALISATION FORMULAIRE ===
+        if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+            input.setCustomValidity("La photo doit être au format JPG ou PNG.");
+            if (info) info.textContent = "La photo doit être au format JPG ou PNG.";
+            return false;
+        }
 
-const initialiserFormulaire = () => {
-    const formulaire = selectionner("#form-cv");
-    if (!formulaire) return;
+        if (file.size > MAX_PHOTO_SIZE) {
+            input.setCustomValidity("La photo ne doit pas dépasser 2 Mo.");
+            if (info) info.textContent = "La photo ne doit pas dépasser 2 Mo.";
+            return false;
+        }
 
-    const champEmail = selectionner("#email");
-    const erreurEmail = selectionner("#erreur-email");
-    const champTelephone = selectionner("#telephone");
-    const erreurTelephone = selectionner("#erreur-telephone");
-    const champProfil = selectionner("#profil");
-    const compteurProfil = selectionner("#compteur-profil");
-    const champPhoto = selectionner("#photo_upload");
-    const boutonExemple = selectionner("#charger-exemple");
-    const boutonEffacer = selectionner("#effacer-brouillon");
-    const donneesInitiales = lireStockage(CLE_BROUILLON) || lireStockage(CLE_CV) || cvExemple;
-
-    remplirFormulaire(formulaire, normaliserCv(donneesInitiales));
-
-    const mettreAJourFormulaire = () => {
-        const cv = construireCvDepuisFormulaire(formulaire);
-        mettreAJourEtatEmail(champEmail, erreurEmail);
-        mettreAJourEtatTelephone(champTelephone, erreurTelephone);
-        mettreAJourCompteurProfil(champProfil, compteurProfil);
-        afficherApercuRapide(cv);
-        localStorage.setItem(CLE_BROUILLON, JSON.stringify(cv));
+        input.setCustomValidity("");
+        if (info) info.textContent = `Photo sélectionnée : ${file.name}`;
+        return true;
     };
 
-    formulaire.addEventListener("input", mettreAJourFormulaire);
+    const renderPreview = (cv) => {
+        const container = $("#apercu-contenu");
+        if (!container) return;
 
-    formulaire.addEventListener("submit", async (event) => {
-        event.preventDefault();
+        container.replaceChildren();
+        const title = document.createElement("h3");
+        title.textContent = [cv.prenom || "Prénom", cv.nom || "NOM"].join(" ");
+        const subtitle = document.createElement("p");
+        subtitle.textContent = cv.titre || "Titre du CV";
+        container.append(title, subtitle);
 
-        const emailValide = mettreAJourEtatEmail(champEmail, erreurEmail);
-        const telephoneValide = mettreAJourEtatTelephone(champTelephone, erreurTelephone);
-        const formulaireValide = formulaire.reportValidity();
-
-        if (!emailValide || !telephoneValide || !formulaireValide) {
-            if (!emailValide) champEmail.focus();
-            else if (!telephoneValide) champTelephone.focus();
-            return;
+        const details = [cv.email, cv.telephone, cv.ville].filter(Boolean).join(" · ");
+        if (details) {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = details;
+            container.append(paragraph);
         }
 
-        const cv = construireCvDepuisFormulaire(formulaire);
-        const fichierPhoto = champPhoto?.files?.[0] || null;
+        if (cv.competences.length > 0) {
+            const heading = document.createElement("h4");
+            heading.textContent = "Compétences";
+            const list = document.createElement("ul");
+            cv.competences.slice(0, 6).forEach((skill) => {
+                const item = document.createElement("li");
+                item.textContent = skill;
+                list.append(item);
+            });
+            container.append(heading, list);
+        }
+    };
 
+    const updateForm = (form) => {
+        const cv = buildCv(form);
+        updateEmailState(form);
+        updatePhoneState(form);
+        updateCounter(form);
+        validatePhoto(form);
+        renderPreview(cv);
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(cv));
+    };
+
+    const loadServerCv = async (form) => {
         try {
-            const cvEnregistre = await sauvegarderCvBackend(cv, fichierPhoto);
-            localStorage.setItem(CLE_CV, JSON.stringify(cvEnregistre));
-            localStorage.removeItem(CLE_BROUILLON);
-        } catch (error) {
-            afficherNotification(error.message);
-            return;
+            const response = await fetch(`${API_BASE}/student-profile.php`, { credentials: "include" });
+            if (!response.ok) return null;
+            return normaliseCv(await response.json());
+        } catch {
+            return null;
+        }
+    };
+
+    const saveServerCv = async (cv, photoFile) => {
+        const options = {
+            method: "POST",
+            credentials: "include"
+        };
+
+        if (photoFile) {
+            const formData = new FormData();
+            formData.append("cv", JSON.stringify(cv));
+            formData.append("photo", photoFile);
+            options.body = formData;
+        } else {
+            options.headers = { "Content-Type": "application/json" };
+            options.body = JSON.stringify(cv);
         }
 
-        window.location.href = ROUTES.cv;
-    });
+        const response = await fetch(`${API_BASE}/enregistrer-cv.php`, options);
+        const payload = await response.json().catch(() => ({}));
 
-    boutonExemple.addEventListener("click", () => {
-        remplirFormulaire(formulaire, normaliserCv(cvExemple));
-        localStorage.removeItem(CLE_BROUILLON);
-        mettreAJourFormulaire();
-        afficherNotification("Exemple chargé dans le formulaire.");
-    });
+        if (!response.ok) {
+            throw new Error(payload.error || "Impossible d'enregistrer le CV.");
+        }
 
-    boutonEffacer.addEventListener("click", () => {
-        formulaire.reset();
-        localStorage.removeItem(CLE_BROUILLON);
-        mettreAJourFormulaire();
-        afficherNotification("Formulaire effacé.");
-    });
+        return payload.cv ? normaliseCv(payload.cv) : cv;
+    };
 
-    mettreAJourFormulaire();
-    chargerCvFormulaireDepuisServeur(formulaire, mettreAJourFormulaire);
-};
+    const init = async () => {
+        const form = $("#form-cv");
+        if (!form) return;
 
-const initialiserAccueil = () => {
-    const etat = selectionner("#etat-cv");
-    if (!etat) return;
-    etat.textContent = lireStockage(CLE_CV)
-        ? "Un CV personnalisé est enregistré. Vous pouvez le consulter ou le modifier."
-        : "Le CV d'exemple est disponible par défaut.";
-};
+        const serverCv = await loadServerCv(form);
+        const initialCv = normaliseCv(readDraft() || serverCv || exampleCv);
 
-if (document.body.dataset.page === "cv") {
-    afficherCv();
-    afficherBoutonServeur();
-}
+        fillForm(form, initialCv);
+        updateForm(form);
 
-if (document.body.dataset.page === "create") {
-    initialiserFormulaire();
-}
+        form.addEventListener("input", () => updateForm(form));
 
-if (document.body.dataset.page === "home") {
-    initialiserAccueil();
-    afficherSectionConnexion();
-    chargerProfils(1);
-}
+        $("#charger-exemple")?.addEventListener("click", () => {
+            fillForm(form, normaliseCv(exampleCv));
+            updateForm(form);
+            notify("Exemple chargé.");
+        });
 
-if (document.body.dataset.page === "catalogue") {
-    chargerProfils(1);
-}
+        $("#effacer-brouillon")?.addEventListener("click", () => {
+            localStorage.removeItem(DRAFT_KEY);
+            fillForm(form, normaliseCv(serverCv || exampleCv));
+            updateForm(form);
+            notify("Brouillon effacé.");
+        });
 
-if (document.body.dataset.page === "login") {
-    afficherSectionConnexion();
-}
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
 
-if (document.body.dataset.page === "register") {
-    initialiserInscription();
-}
+            const emailOk = updateEmailState(form);
+            const phoneOk = updatePhoneState(form);
+            const photoOk = validatePhoto(form);
+            if (!emailOk || !phoneOk || !photoOk || !form.reportValidity()) return;
 
-if (document.body.dataset.page === "delete-account") {
-    initialiserSuppressionCompte();
-}
+            const submit = $("button[type='submit']", form);
+            submit.disabled = true;
+
+            try {
+                const savedCv = await saveServerCv(buildCv(form), form.elements.photo_upload.files[0] || null);
+                localStorage.removeItem(DRAFT_KEY);
+                fillForm(form, savedCv);
+                notify("CV enregistré.");
+                window.location.href = ROUTES.cv || "../pages/detail-profil.php";
+            } catch (exception) {
+                notify(exception.message, "error");
+            } finally {
+                submit.disabled = false;
+            }
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", init);
+})();

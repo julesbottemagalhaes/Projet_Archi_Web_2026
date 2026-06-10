@@ -37,9 +37,17 @@ require __DIR__ . '/../../inc/header.php';
                 <strong>Utilisateurs</strong>
                 <span>Gérer les comptes étudiants et entreprises.</span>
             </a>
+            <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/admin/entreprises.php', ENT_QUOTES, 'UTF-8'); ?>">
+                <strong>Entreprises</strong>
+                <span>Suivre les comptes partenaires.</span>
+            </a>
             <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/admin/profils.php', ENT_QUOTES, 'UTF-8'); ?>">
                 <strong>Profils</strong>
                 <span>Consulter et modérer les profils étudiants.</span>
+            </a>
+            <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/admin/demandes-contact.php', ENT_QUOTES, 'UTF-8'); ?>">
+                <strong>Demandes</strong>
+                <span>Traiter les demandes des entreprises externes.</span>
             </a>
         </div>
     </section>

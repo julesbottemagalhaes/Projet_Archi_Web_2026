@@ -76,7 +76,7 @@ require __DIR__ . '/../inc/header.php';
                 </div>
 
                 <div class="champ-large">
-                    <label for="photo">Photo</label>
+                    <label for="photo_upload">Photo</label>
                     <input type="hidden" id="photo" name="photo">
                     <input type="file" id="photo_upload" name="photo_upload" accept="image/jpeg,image/png">
                     <span class="message-cv" id="photo-actuelle">Formats acceptés : JPG ou PNG, 2 Mo maximum.</span>
@@ -90,11 +90,11 @@ require __DIR__ . '/../inc/header.php';
             <div class="grille-formulaire">
                 <label>
                     <input type="checkbox" name="domaines_recherche[]" value="stage">
-                    Stage
+                    Stage 1re / 2e année
                 </label>
                 <label>
                     <input type="checkbox" name="domaines_recherche[]" value="alternance">
-                    Alternance
+                    Alternance / apprentissage
                 </label>
                 <label>
                     <input type="checkbox" name="domaines_recherche[]" value="cdi">
@@ -102,7 +102,7 @@ require __DIR__ . '/../inc/header.php';
                 </label>
                 <label>
                     <input type="checkbox" name="domaines_recherche[]" value="mobilite">
-                    Mobilité
+                    Mobilité internationale
                 </label>
             </div>
         </fieldset>

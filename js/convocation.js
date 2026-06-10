@@ -1,103 +1,152 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const btnOuvrir = document.getElementById('btn-ouvrir-convocation');
-    const modal = document.getElementById('modal-convocation');
-    const btnFermer = document.getElementById('btn-fermer-modal');
-    const form = document.getElementById('form-convocation');
-    const resultat = document.getElementById('conv-resultat');
+(() => {
+    const API_BASE = window.JUNIA_API_BASE || "../api";
+    const currentUser = window.JUNIA_CURRENT_USER || null;
 
-    if (btnOuvrir && modal) {
-        btnOuvrir.addEventListener('click', () => {
+    const $ = (selector, root = document) => root.querySelector(selector);
+
+    let modalBound = false;
+
+    const createText = (tag, text) => {
+        const element = document.createElement(tag);
+        element.textContent = text || "";
+        return element;
+    };
+
+    const bindModal = () => {
+        if (modalBound || currentUser?.role !== "company") return;
+
+        const button = $("#btn-ouvrir-convocation");
+        const modal = $("#modal-convocation");
+        const close = $("#btn-fermer-modal");
+        const form = $("#form-convocation");
+        const result = $("#conv-resultat");
+
+        if (!button || !modal || !form) return;
+
+        modalBound = true;
+
+        button.addEventListener("click", () => {
+            result.textContent = "";
             modal.showModal();
         });
 
-        btnFermer.addEventListener('click', () => {
-            modal.close();
+        close?.addEventListener("click", () => {
             form.reset();
-            resultat.textContent = '';
+            result.textContent = "";
+            modal.close();
         });
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const params = new URLSearchParams(window.location.search);
-            const etudiant_id = params.get('id');
-            
-            if (!etudiant_id) {
-                resultat.textContent = "Erreur: ID étudiant manquant.";
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const studentId = window.JUNIA_PROFILE_ID;
+            if (!studentId) {
+                result.textContent = "Profil étudiant introuvable.";
                 return;
             }
 
-            const data = {
-                etudiant_id: parseInt(etudiant_id),
-                date: document.getElementById('conv-date').value,
-                heure: document.getElementById('conv-heure').value,
-                lieu: document.getElementById('conv-lieu').value,
-                type_contrat: document.getElementById('conv-contrat').value,
-                message: document.getElementById('conv-message').value
+            const payload = {
+                etudiant_id: studentId,
+                date: form.elements.date.value,
+                heure: form.elements.heure.value,
+                lieu: form.elements.lieu.value.trim(),
+                type_contrat: form.elements.contrat.value,
+                message: form.elements.message.value.trim()
             };
 
+            const submit = $("button[type='submit']", form);
+            submit.disabled = true;
+            result.className = "message-cv";
+            result.textContent = "Envoi de la convocation...";
+
             try {
-                const response = await fetch('../api/convocation.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                const response = await fetch(`${API_BASE}/convocation.php`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
                 });
-                
-                const json = await response.json();
-                
-                if (response.ok) {
-                    resultat.style.color = "green";
-                    resultat.textContent = "Convocation envoyée avec succès !";
-                    setTimeout(() => {
-                        modal.close();
-                        form.reset();
-                        resultat.textContent = '';
-                    }, 2000);
-                } else {
-                    resultat.style.color = "red";
-                    resultat.textContent = json.error || "Une erreur est survenue.";
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Convocation impossible.");
                 }
-            } catch (err) {
-                console.error(err);
-                resultat.style.color = "red";
-                resultat.textContent = "Erreur de connexion au serveur.";
+
+                result.className = "message-cv succes";
+                result.textContent = "Convocation enregistrée.";
+                setTimeout(() => {
+                    form.reset();
+                    modal.close();
+                    result.textContent = "";
+                }, 1200);
+            } catch (exception) {
+                result.className = "erreur";
+                result.textContent = exception.message;
+            } finally {
+                submit.disabled = false;
             }
         });
-    }
+    };
 
-    // Gestion de l'historique des convocations
-    const tableHistorique = document.getElementById('tbody-historique');
-    if (tableHistorique) {
-        chargerHistorique();
-    }
-});
+    const loadHistory = async () => {
+        const tbody = $("#tbody-historique");
+        if (!tbody) return;
 
-async function chargerHistorique() {
-    const tableHistorique = document.getElementById('tbody-historique');
-    try {
-        const response = await fetch('../api/historique-convocations.php');
-        const convocations = await response.json();
-        
-        tableHistorique.innerHTML = '';
-        
-        if (convocations.length === 0) {
-            tableHistorique.innerHTML = '<tr><td colspan="5">Aucune convocation envoyée.</td></tr>';
-            return;
+        try {
+            const response = await fetch(`${API_BASE}/historique-convocations.php`, {
+                credentials: "include"
+            });
+            const rows = await response.json();
+
+            if (!response.ok) {
+                throw new Error(rows.error || "Chargement impossible.");
+            }
+
+            tbody.replaceChildren();
+
+            if (!rows.length) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.textContent = "Aucune convocation envoyée.";
+                row.append(cell);
+                tbody.append(row);
+                return;
+            }
+
+            rows.forEach((convocation) => {
+                const row = document.createElement("tr");
+
+                const studentCell = document.createElement("td");
+                const link = document.createElement("a");
+                link.href = `detail-profil.php?id=${encodeURIComponent(convocation.etudiant_id)}`;
+                link.textContent = convocation.etudiant_nom;
+                studentCell.append(link);
+
+                row.append(
+                    studentCell,
+                    createText("td", convocation.type_contrat),
+                    createText("td", `${convocation.date_rdv} à ${convocation.heure_rdv}`),
+                    createText("td", convocation.lieu),
+                    createText("td", convocation.statut)
+                );
+                tbody.append(row);
+            });
+        } catch (exception) {
+            tbody.replaceChildren();
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 5;
+            cell.textContent = exception.message;
+            row.append(cell);
+            tbody.append(row);
         }
+    };
 
-        convocations.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><a href="detail-profil.php?id=${c.etudiant_id}">${c.etudiant_nom}</a></td>
-                <td>${c.type_contrat}</td>
-                <td>${c.date_rdv} à ${c.heure_rdv}</td>
-                <td>${c.lieu}</td>
-                <td><strong>${c.statut}</strong></td>
-            `;
-            tableHistorique.appendChild(tr);
-        });
-    } catch (err) {
-        console.error(err);
-        tableHistorique.innerHTML = '<tr><td colspan="5">Erreur de chargement.</td></tr>';
-    }
-}
+    document.addEventListener("DOMContentLoaded", () => {
+        bindModal();
+        loadHistory();
+    });
+
+    document.addEventListener("junia:profile-loaded", bindModal);
+})();

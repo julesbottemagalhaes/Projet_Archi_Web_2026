@@ -12,6 +12,7 @@ $headerTitle = 'Mon profil';
 $headerSubtitle = 'Retrouvez les actions principales pour gérer votre CV.';
 
 require __DIR__ . '/../inc/header.php';
+$studentProfileHref = $assetBase . '/pages/detail-profil.php?id=' . (int) ($_SESSION['user_id'] ?? 0);
 ?>
 
 <main>
@@ -23,7 +24,7 @@ require __DIR__ . '/../inc/header.php';
         </p>
 
         <div class="choix-accueil">
-            <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/detail-profil.php', ENT_QUOTES, 'UTF-8'); ?>">
+            <a class="choix" href="<?php echo htmlspecialchars($studentProfileHref, ENT_QUOTES, 'UTF-8'); ?>">
                 <strong>Voir mon CV</strong>
                 <span>Afficher le CV d'exemple ou le dernier CV enregistré.</span>
             </a>

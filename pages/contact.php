@@ -36,6 +36,7 @@ require __DIR__ . '/../inc/header.php';
             <div class="actions-ligne" style="margin-top:1rem">
                 <button type="submit">Envoyer la demande</button>
             </div>
+            <p id="contact-message" class="message-cv" aria-live="polite"></p>
         </form>
     </section>
 

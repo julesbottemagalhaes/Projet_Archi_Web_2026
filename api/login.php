@@ -14,28 +14,18 @@
   }
 
   $roles = [
-    'student' => ['table' => 'etudiants', 'email_field' => 'email'],
-    'company' => ['table' => 'entreprises', 'email_field' => 'email_contact'],
-    'admin' => ['table' => 'admins', 'email_field' => 'email'],
+    'student' => ['table' => 'etudiants', 'email_field' => 'email', 'nom_field' => 'nom'],
+    'company' => ['table' => 'entreprises', 'email_field' => 'email_contact', 'nom_field' => 'nom'],
+    'admin' => ['table' => 'admins', 'email_field' => 'email', 'nom_field' => 'nom'],
   ];
 
   if (!isset($roles[$user_type])) {
     json_response(["error" => "Type de compte invalide"], 400);
   }
 
-  if ($user_type == "company") {
-      $table = "entreprises";
-      $email_field = "email_contact";
-      $nom_field = "nom";
-  } elseif ($user_type == "admin") {
-      $table = "admins";
-      $email_field = "email";
-      $nom_field = "'Administrateur' as nom";
-  } else {
-      $table = "etudiants";
-      $email_field = "email";
-      $nom_field = "nom";
-  }
+  $table = $roles[$user_type]['table'];
+  $email_field = $roles[$user_type]['email_field'];
+  $nom_field = $roles[$user_type]['nom_field'];
 
   $stmt = $connection->prepare(
     "SELECT id, $nom_field, password_hash FROM $table WHERE $email_field = ?"
@@ -63,6 +53,7 @@
         "user" => [
           "id" => $user['id'],
           "nom" => $user['nom'],
+          "role" => $user_type,
           "type" => $user_type
         ]
       ]);

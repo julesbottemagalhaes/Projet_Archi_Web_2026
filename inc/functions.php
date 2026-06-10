@@ -24,7 +24,7 @@ function json_response(array $data, int $status = 200): void
 {
     http_response_code($status);
     header('Content-Type: application/json');
-    echo json_encode($data);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -48,6 +48,7 @@ function current_user(): ?array
     return [
         'id' => (int) $_SESSION['user_id'],
         'role' => current_user_role(),
+        'type' => current_user_role(),
         'nom' => $_SESSION['nom'] ?? '',
         'email' => $_SESSION['email'] ?? '',
     ];

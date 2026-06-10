@@ -131,8 +131,8 @@ INSERT INTO competences (etudiant_id, competence) VALUES
 (9, 'Flutter'), (9, 'Dart'), (9, 'Firebase'), (9, 'Unity'), (9, 'C#'),
 (10, 'Pentest'), (10, 'Python'), (10, 'Metasploit'), (10, 'Kali Linux'), (10, 'OSINT'), (10, 'Cryptographie');
 
-INSERT INTO admins (email, password_hash) VALUES
-('admin@junia.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+INSERT INTO admins (nom, email, password_hash) VALUES
+('Admin JUNIA', 'admin@junia.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 INSERT INTO demandes_contact (nom_entreprise, email_contact, message, statut) VALUES
 ('FutureTech', 'contact@futuretech.fr', 'Nous souhaitons rejoindre la plateforme pour recruter des stagiaires en IA.', 'en attente'),

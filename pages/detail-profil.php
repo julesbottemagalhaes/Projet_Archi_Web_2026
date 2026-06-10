@@ -61,13 +61,7 @@ require __DIR__ . '/../inc/header.php';
 <main>
     <div class="barre-actions">
         <p id="cv-message" class="message-cv">CV d'exemple affiché.</p>
-        <div class="actions-ligne" id="actions-profil">
-            <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'etudiant'): ?>
-                <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/modifier-profil.php', ENT_QUOTES, 'UTF-8'); ?>">Modifier le CV</a>
-            <?php elseif (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'company'): ?>
-                <button id="btn-ouvrir-convocation" class="bouton bouton-primaire" type="button">Convoquer</button>
-            <?php endif; ?>
-        </div>
+        <div class="actions-ligne" id="actions-profil"></div>
     </div>
 
     <section id="section-profil" hidden>
@@ -163,7 +157,7 @@ require __DIR__ . '/../inc/header.php';
                             <option value="stage">Stage</option>
                             <option value="alternance">Alternance</option>
                             <option value="cdi">CDI</option>
-                            <option value="cdd">CDD</option>
+                            <option value="mobilite">Mobilité internationale</option>
                         </select>
                     </div>
                     <div class="champ-large">

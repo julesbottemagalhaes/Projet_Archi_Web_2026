@@ -19,7 +19,7 @@ require __DIR__ . '/../inc/header.php';
             stage, alternance, CDI ou mobilité internationale.
         </p>
 
-        <div class="filtres-profils" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="filtres-profils">
             <input type="text" id="search-input" placeholder="Rechercher un étudiant...">
             <input type="text" id="competence-input" placeholder="Compétence (ex: Python)">
             <input type="text" id="ecole-input" placeholder="École ou Promotion">
@@ -30,15 +30,15 @@ require __DIR__ . '/../inc/header.php';
                 <option value="cdi">CDI</option>
                 <option value="mobilite">Mobilité</option>
             </select>
-            <button type="button" onclick="chargerProfils(1)">Rechercher</button>
+            <button type="button" id="btn-rechercher">Rechercher</button>
         </div>
 
         <div id="grille-profils"></div>
 
         <div class="pagination-profils">
-            <button type="button" id="btn-prev" onclick="changerPage(-1)" hidden>Précédent</button>
+            <button type="button" id="btn-prev" hidden>Précédent</button>
             <span id="page-info"></span>
-            <button type="button" id="btn-next" onclick="changerPage(1)" hidden>Suivant</button>
+            <button type="button" id="btn-next" hidden>Suivant</button>
         </div>
     </section>
 

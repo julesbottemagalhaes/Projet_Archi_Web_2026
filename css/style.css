@@ -266,6 +266,11 @@ main ul {
     color: var(--couleur-texte-clair);
 }
 
+.message-cv.succes {
+    color: var(--couleur-succes);
+    font-weight: 700;
+}
+
 .actions-ligne,
 .form-actions {
     display: flex;
@@ -577,6 +582,10 @@ textarea {
     animation: slideIn 0.3s ease;
 }
 
+.notification-error {
+    background: var(--couleur-erreur);
+}
+
 footer {
     grid-area: footer;
     padding: 16px 0 8px;
@@ -761,6 +770,12 @@ footer {
     flex-shrink: 0;
 }
 
+img.profil-card-avatar {
+    object-fit: cover;
+    padding: 0;
+    background: var(--couleur-bordure);
+}
+
 .profil-card h3 {
     color: var(--couleur-principale);
     font-size: 1rem;
@@ -824,6 +839,31 @@ footer {
 #page-info {
     font-size: 0.9rem;
     color: var(--couleur-texte-clair);
+}
+
+.modal {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--rayon-carte);
+    box-shadow: var(--ombre-carte-hover);
+}
+
+.modal::backdrop {
+    background: rgba(42, 42, 42, 0.45);
+}
+
+.modal-content {
+    padding: 24px;
+    background: var(--couleur-carte);
+}
+
+.modal form {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
 }
 
 @keyframes slideIn {

@@ -9,6 +9,9 @@ $headerTitle = 'CV JUNIA';
 $headerSubtitle = "Consulter l'exemple, créer une version personnalisée ou parcourir les profils.";
 
 require __DIR__ . '/inc/header.php';
+$homeProfileHref = current_user_role() === 'student'
+    ? $assetBase . '/pages/detail-profil.php?id=' . (int) ($_SESSION['user_id'] ?? 0)
+    : $assetBase . '/pages/catalogue.php';
 ?>
 
 <main>
@@ -25,9 +28,9 @@ require __DIR__ . '/inc/header.php';
         <p id="etat-cv" class="message-cv">Le CV d'exemple est disponible par défaut.</p>
 
         <div class="choix-accueil">
-            <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/detail-profil.php', ENT_QUOTES, 'UTF-8'); ?>">
-                <strong>Voir le CV</strong>
-                <span>Afficher le CV d'exemple ou le dernier CV enregistré.</span>
+            <a class="choix" href="<?php echo htmlspecialchars($homeProfileHref, ENT_QUOTES, 'UTF-8'); ?>">
+                <strong>Voir les profils</strong>
+                <span>Accéder au catalogue ou à votre CV si vous êtes connecté.</span>
             </a>
 
             <a class="choix" href="<?php echo htmlspecialchars($assetBase . '/pages/modifier-profil.php', ENT_QUOTES, 'UTF-8'); ?>">

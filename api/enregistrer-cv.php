@@ -138,8 +138,19 @@ function upload_student_photo(?array $file, ?string $existingPhoto): ?string
         return $existingPhoto;
     }
 
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        json_response(['error' => 'Upload photo impossible.'], 400);
+    $uploadError = $file['error'] ?? UPLOAD_ERR_OK;
+
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE => 'La photo ne doit pas dépasser 2 Mo.',
+            UPLOAD_ERR_FORM_SIZE => 'La photo ne doit pas dépasser 2 Mo.',
+            UPLOAD_ERR_PARTIAL => 'La photo n’a été envoyée que partiellement. Réessayez.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Le dossier temporaire d’upload est indisponible.',
+            UPLOAD_ERR_CANT_WRITE => 'Impossible d’écrire la photo sur le serveur.',
+            UPLOAD_ERR_EXTENSION => 'L’upload de la photo a été bloqué par PHP.',
+        ];
+
+        json_response(['error' => $messages[$uploadError] ?? 'Upload photo impossible.'], 400);
     }
 
     if (($file['size'] ?? 0) > UPLOAD_PHOTO_MAX_SIZE) {

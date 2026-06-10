@@ -74,6 +74,7 @@ json_response([
     'user' => [
         'id' => $studentId,
         'nom' => $nomComplet,
+        'role' => 'student',
         'type' => 'student',
     ],
 ], 201);

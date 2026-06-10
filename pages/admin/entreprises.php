@@ -22,22 +22,14 @@ require __DIR__ . '/../../inc/header.php';
             <table>
                 <thead>
                     <tr>
-                        <th>Entreprise</th>
-                        <th>Secteur</th>
+                        <th>Nom</th>
                         <th>Email</th>
+                        <th>Date de création</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>TechCorp</td>
-                        <td>Informatique</td>
-                        <td>contact@techcorp.fr</td>
-                    </tr>
-                    <tr>
-                        <td>InnoSoft</td>
-                        <td>Logiciel</td>
-                        <td>recrutement@innosoft.fr</td>
-                    </tr>
+                <tbody id="tbody-utilisateurs">
+                    <!-- JS -->
                 </tbody>
             </table>
         </div>
