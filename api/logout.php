@@ -2,6 +2,7 @@
 require __DIR__ . '/../inc/functions.php';
 
 start_secure_session();
+require_http_method('POST');
 
 $_SESSION = [];
 

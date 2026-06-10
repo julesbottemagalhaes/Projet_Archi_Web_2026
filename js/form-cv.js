@@ -849,6 +849,48 @@ const initialiserInscription = () => {
     });
 };
 
+const initialiserSuppressionCompte = () => {
+    const formulaire = selectionner("#form-suppression-compte");
+    if (!formulaire) return;
+
+    const message = selectionner("#suppression-message");
+
+    formulaire.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!formulaire.reportValidity()) return;
+
+        message.textContent = "Suppression du compte...";
+
+        try {
+            const response = await fetch(`${API_BASE}/delete-account.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    password: formulaire.elements.password.value,
+                    confirmation: formulaire.elements.confirmation.checked
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Suppression impossible.");
+            }
+
+            localStorage.removeItem(CLE_CV);
+            localStorage.removeItem(CLE_BROUILLON);
+            effacerSession();
+            message.textContent = "Compte supprimé. Redirection...";
+            afficherNotification("Compte supprimé.");
+            window.location.href = ROUTES.accueil;
+        } catch (error) {
+            message.textContent = error.message;
+        }
+    });
+};
+
 // === INITIALISATION FORMULAIRE ===
 
 const initialiserFormulaire = () => {
@@ -958,4 +1000,8 @@ if (document.body.dataset.page === "login") {
 
 if (document.body.dataset.page === "register") {
     initialiserInscription();
+}
+
+if (document.body.dataset.page === "delete-account") {
+    initialiserSuppressionCompte();
 }
