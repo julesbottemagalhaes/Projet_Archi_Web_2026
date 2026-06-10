@@ -8,6 +8,8 @@ const ROUTES = window.JUNIA_ROUTES || {
     creer: "pages/modifier-profil.php"
 };
 const DEFAULT_PHOTO = window.JUNIA_DEFAULT_PHOTO || "photo_profil.png";
+const APP_BASE = API_BASE.replace(/\/api\/?$/, "");
+const DOMAINES_RECHERCHE = ["stage", "alternance", "cdi", "mobilite"];
 
 let pagineProfils = 1;
 
@@ -23,6 +25,7 @@ const cvExemple = {
     github: "https://github.com/keanugauthier",
     photo: DEFAULT_PHOTO,
     profil: "",
+    domainesRecherche: ["stage", "alternance"],
     competences: ["Programmation", "Gestion de projet", "Analyse de données"],
     langues: ["Français : langue maternelle", "Anglais : courant"],
     formations: [
@@ -124,6 +127,29 @@ const normaliserEntrees = (entrees) => Array.isArray(entrees)
         .filter((entree) => entree.titre || entree.dates || entree.description)
     : [];
 
+const normaliserDomaines = (domaines) => {
+    if (typeof domaines === "string") {
+        try {
+            const domainesJson = JSON.parse(domaines);
+            domaines = Array.isArray(domainesJson) ? domainesJson : [domaines];
+        } catch {
+            domaines = [domaines];
+        }
+    }
+
+    return Array.isArray(domaines)
+        ? [...new Set(domaines.map(nettoyerTexte).map((domaine) => domaine.toLowerCase()))]
+            .filter((domaine) => DOMAINES_RECHERCHE.includes(domaine))
+        : [];
+};
+
+const resoudrePhoto = (photo) => {
+    const chemin = nettoyerTexte(photo);
+    if (!chemin) return DEFAULT_PHOTO;
+    if (/^(https?:|data:|\/)/i.test(chemin)) return chemin;
+    return `${APP_BASE}/${chemin.replace(/^\/+/, "")}`;
+};
+
 const normaliserCv = (cv) => ({
     prenom: nettoyerTexte(cv.prenom),
     nom: nettoyerTexte(cv.nom),
@@ -134,8 +160,9 @@ const normaliserCv = (cv) => ({
     dateNaissance: nettoyerTexte(cv.dateNaissance),
     linkedin: nettoyerTexte(cv.linkedin),
     github: nettoyerTexte(cv.github),
-    photo: nettoyerTexte(cv.photo) || DEFAULT_PHOTO,
+    photo: nettoyerTexte(cv.photo) || "",
     profil: nettoyerTexte(cv.profil),
+    domainesRecherche: normaliserDomaines(cv.domainesRecherche ?? cv.domaines_recherche ?? cv.domaines),
     competences: normaliserListe(cv.competences),
     langues: normaliserListe(cv.langues),
     formations: normaliserEntrees(cv.formations),
@@ -246,7 +273,7 @@ const afficherCv = () => {
         photo.onerror = null;
         photo.src = DEFAULT_PHOTO;
     };
-    photo.src = cv.photo;
+    photo.src = resoudrePhoto(cv.photo);
     photo.alt = `Photo de ${nomComplet}`;
 
     const contact = selectionner("#cv-contact");
@@ -268,6 +295,10 @@ const afficherCv = () => {
     remplirListeSimple("#cv-competences", cv.competences);
     remplirListeSimple("#cv-langues", cv.langues);
     remplirListeSimple("#cv-centres-interet", cv.centresInteret);
+    remplirListeSimple(
+        "#cv-domaines-recherche",
+        cv.domainesRecherche.map((domaine) => domaine === "cdi" ? "CDI" : domaine.charAt(0).toUpperCase() + domaine.slice(1))
+    );
     remplirListeLiens("#cv-liens", [
         { texte: "GitHub", href: cv.github },
         { texte: "LinkedIn", href: cv.linkedin }
@@ -341,6 +372,7 @@ const construireCvDepuisFormulaire = (formulaire) => normaliserCv({
     github: lireChamp(formulaire, "github"),
     photo: lireChamp(formulaire, "photo"),
     profil: lireChamp(formulaire, "profil"),
+    domainesRecherche: Array.from(formulaire.querySelectorAll('input[name="domaines_recherche[]"]:checked')).map((input) => input.value),
     competences: lignesTexte(lireChamp(formulaire, "competences")),
     langues: lignesTexte(lireChamp(formulaire, "langues")),
     formations: lignesEntrees(lireChamp(formulaire, "formations")),
@@ -366,6 +398,15 @@ const remplirFormulaire = (formulaire, cv) => {
     formulaire.elements.linkedin.value = cv.linkedin;
     formulaire.elements.github.value = cv.github;
     formulaire.elements.photo.value = cv.photo;
+    formulaire.querySelectorAll('input[name="domaines_recherche[]"]').forEach((input) => {
+        input.checked = cv.domainesRecherche.includes(input.value);
+    });
+    const photoActuelle = selectionner("#photo-actuelle", formulaire);
+    if (photoActuelle) {
+        photoActuelle.textContent = cv.photo
+            ? `Photo actuelle : ${cv.photo}`
+            : "Formats acceptés : JPG ou PNG, 2 Mo maximum.";
+    }
     formulaire.elements.profil.value = cv.profil;
     formulaire.elements.competences.value = listeVersTextarea(cv.competences);
     formulaire.elements.langues.value = listeVersTextarea(cv.langues);
@@ -522,27 +563,40 @@ async function inscrireEtudiant(donnees) {
 
 // === BACKEND : CV ===
 
-async function sauvegarderCvBackend(cv) {
+async function sauvegarderCvBackend(cv, photoFile = null) {
     const session = lireSession();
-    if (!session || session.type !== "student") return;
-
-    try {
-        const response = await fetch(`${API_BASE}/enregistrer-cv.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(cv)
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            afficherNotification("CV sauvegardé sur le serveur !");
-        } else {
-            console.error("Erreur backend:", data.error);
-        }
-    } catch (error) {
-        console.error("Erreur réseau:", error);
+    if (session && session.type !== "student") {
+        throw new Error("Connexion étudiant requise.");
     }
+
+    const options = {
+        method: "POST",
+        credentials: "include"
+    };
+
+    if (photoFile) {
+        const formData = new FormData();
+        formData.append("cv", JSON.stringify(cv));
+        formData.append("photo", photoFile);
+        options.body = formData;
+    } else {
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(cv);
+    }
+
+    const response = await fetch(`${API_BASE}/enregistrer-cv.php`, options);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Impossible d'enregistrer le CV.");
+    }
+
+    if (data.cv) {
+        localStorage.setItem(CLE_CV, JSON.stringify(normaliserCv(data.cv)));
+    }
+
+    afficherNotification("CV sauvegardé sur le serveur !");
+    return data.cv ? normaliserCv(data.cv) : cv;
 }
 
 async function chargerCvDepuisServeur() {
@@ -550,7 +604,7 @@ async function chargerCvDepuisServeur() {
     if (!session || session.type !== "student") return;
 
     try {
-        const response = await fetch(`${API_BASE}/profil.php?id=${session.id}`, {
+        const response = await fetch(`${API_BASE}/student-profile.php`, {
             credentials: "include"
         });
 
@@ -562,6 +616,25 @@ async function chargerCvDepuisServeur() {
         afficherCv();
     } catch {
         afficherNotification("Impossible de charger le CV depuis le serveur.");
+    }
+}
+
+async function chargerCvFormulaireDepuisServeur(formulaire, callbackMiseAJour) {
+    try {
+        const response = await fetch(`${API_BASE}/student-profile.php`, {
+            credentials: "include"
+        });
+
+        if (!response.ok) return;
+
+        const cv = normaliserCv(await response.json());
+        remplirFormulaire(formulaire, cv);
+        localStorage.setItem(CLE_CV, JSON.stringify(cv));
+        localStorage.removeItem(CLE_BROUILLON);
+        callbackMiseAJour();
+        afficherNotification("CV chargé depuis le serveur.");
+    } catch {
+        afficherNotification("Impossible de préremplir le CV serveur.");
     }
 }
 
@@ -788,6 +861,7 @@ const initialiserFormulaire = () => {
     const erreurTelephone = selectionner("#erreur-telephone");
     const champProfil = selectionner("#profil");
     const compteurProfil = selectionner("#compteur-profil");
+    const champPhoto = selectionner("#photo_upload");
     const boutonExemple = selectionner("#charger-exemple");
     const boutonEffacer = selectionner("#effacer-brouillon");
     const donneesInitiales = lireStockage(CLE_BROUILLON) || lireStockage(CLE_CV) || cvExemple;
@@ -819,10 +893,16 @@ const initialiserFormulaire = () => {
         }
 
         const cv = construireCvDepuisFormulaire(formulaire);
-        localStorage.setItem(CLE_CV, JSON.stringify(cv));
-        localStorage.removeItem(CLE_BROUILLON);
+        const fichierPhoto = champPhoto?.files?.[0] || null;
 
-        await sauvegarderCvBackend(cv);
+        try {
+            const cvEnregistre = await sauvegarderCvBackend(cv, fichierPhoto);
+            localStorage.setItem(CLE_CV, JSON.stringify(cvEnregistre));
+            localStorage.removeItem(CLE_BROUILLON);
+        } catch (error) {
+            afficherNotification(error.message);
+            return;
+        }
 
         window.location.href = ROUTES.cv;
     });
@@ -842,6 +922,7 @@ const initialiserFormulaire = () => {
     });
 
     mettreAJourFormulaire();
+    chargerCvFormulaireDepuisServeur(formulaire, mettreAJourFormulaire);
 };
 
 const initialiserAccueil = () => {

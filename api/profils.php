@@ -1,13 +1,15 @@
 <?php
   require __DIR__ . '/../inc/db.php';
 
-  header("Content-Type: application/json");
-
   $page = max(1, intval($_GET['page'] ?? 1));
   $limit = 10;
   $offset = ($page - 1) * $limit;
-  $domaine = $_GET['domaine'] ?? '';
-  $search = $_GET['search'] ?? '';
+  $domaine = strtolower(clean_string($_GET['domaine'] ?? '', 30));
+  $search = clean_string($_GET['search'] ?? '', 100);
+
+  if ($domaine !== '' && !in_array($domaine, allowed_cv_domaines(), true)) {
+    json_response(["error" => "Domaine invalide"], 400);
+  }
 
   $query = "SELECT id, nom, biographie, photo, domaines_recherche FROM etudiants WHERE 1=1";
 
@@ -39,11 +41,10 @@
       "id" => $row['id'],
       "nom" => $row['nom'],
       "biographie" => strlen($bio) > 150 ? substr($bio, 0, 150) . '...' : $bio,
-      "photo" => $row['photo'] ? '/uploads/' . $row['photo'] : null,
-      "domaines" => json_decode($row['domaines_recherche'] ?? '[]') ?? []
+      "photo" => $row['photo'] ?: null,
+      "domaines" => normalise_cv_domaines($row['domaines_recherche'] ?? [])
     ];
   }
 
-  echo json_encode($profils);
   $stmt->close();
-?>
+  json_response($profils);

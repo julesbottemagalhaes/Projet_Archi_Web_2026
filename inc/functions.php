@@ -112,3 +112,33 @@ function safe_json_encode(mixed $value): string
 {
     return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
+
+function decode_json_array(?string $json): array
+{
+    $decoded = json_decode($json ?? '[]', true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function allowed_cv_domaines(): array
+{
+    return ['stage', 'alternance', 'cdi', 'mobilite'];
+}
+
+function normalise_cv_domaines(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = is_array($decoded) ? $decoded : [$value];
+    }
+
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $domaines = array_map(
+        static fn (mixed $domaine): string => strtolower(clean_string($domaine, 30)),
+        $value
+    );
+
+    return array_values(array_intersect(allowed_cv_domaines(), array_unique($domaines)));
+}

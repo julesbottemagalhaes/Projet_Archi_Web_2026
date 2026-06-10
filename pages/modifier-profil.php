@@ -77,8 +77,33 @@ require __DIR__ . '/../inc/header.php';
 
                 <div class="champ-large">
                     <label for="photo">Photo</label>
-                    <input type="text" id="photo" name="photo" placeholder="photo_profil.png">
+                    <input type="hidden" id="photo" name="photo">
+                    <input type="file" id="photo_upload" name="photo_upload" accept="image/jpeg,image/png">
+                    <span class="message-cv" id="photo-actuelle">Formats acceptés : JPG ou PNG, 2 Mo maximum.</span>
                 </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Recherche</legend>
+
+            <div class="grille-formulaire">
+                <label>
+                    <input type="checkbox" name="domaines_recherche[]" value="stage">
+                    Stage
+                </label>
+                <label>
+                    <input type="checkbox" name="domaines_recherche[]" value="alternance">
+                    Alternance
+                </label>
+                <label>
+                    <input type="checkbox" name="domaines_recherche[]" value="cdi">
+                    CDI
+                </label>
+                <label>
+                    <input type="checkbox" name="domaines_recherche[]" value="mobilite">
+                    Mobilité
+                </label>
             </div>
         </fieldset>
 
