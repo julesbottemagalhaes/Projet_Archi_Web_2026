@@ -58,6 +58,14 @@ CREATE TABLE entreprises (
   date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE admins (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  nom VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE convocations (
   id INT PRIMARY KEY AUTO_INCREMENT,
   etudiant_id INT NOT NULL,
@@ -72,6 +80,7 @@ CREATE TABLE convocations (
 
 CREATE INDEX idx_etudiant_email ON etudiants(email);
 CREATE INDEX idx_entreprise_email ON entreprises(email_contact);
+CREATE INDEX idx_admin_email ON admins(email);
 CREATE INDEX idx_convocations_etudiant ON convocations(etudiant_id);
 CREATE INDEX idx_convocations_entreprise ON convocations(entreprise_id);
 
@@ -90,6 +99,10 @@ INSERT INTO entreprises (nom, email_contact, password_hash, secteur) VALUES
  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Informatique'),
 ('InnoSoft', 'recrutement@innosoft.fr',
  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Logiciel');
+
+INSERT INTO admins (nom, email, password_hash) VALUES
+('Admin JUNIA', 'admin@junia.com',
+ '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 INSERT INTO competences (etudiant_id, competence) VALUES
 (1, 'Programmation'), (1, 'Gestion de projet'), (1, 'Développement web'),

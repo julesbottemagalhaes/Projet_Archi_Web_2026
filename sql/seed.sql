@@ -98,6 +98,10 @@ INSERT INTO entreprises (nom, email_contact, password_hash, secteur) VALUES
 ('MobilePlus', 'carrieres@mobileplus.fr',
  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mobile & IoT');
 
+INSERT INTO admins (nom, email, password_hash) VALUES
+('Admin demo', 'admin.demo@junia.com',
+ '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+
 INSERT INTO experiences (etudiant_id, entreprise, poste, date_debut, date_fin, description) VALUES
 (3, 'Startup Nantes', 'Développeur web junior', '2024-06-01', '2024-08-31', 'Développement de fonctionnalités React et intégration d\'API REST.'),
 (4, 'Airbus', 'Stagiaire systèmes embarqués', '2024-04-01', '2024-06-30', 'Développement firmware en C pour systèmes de contrôle avionique.'),

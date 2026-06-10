@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['student'];
+require __DIR__ . '/../inc/auth-check.php';
+
 $pageTitle = 'Créer un CV — CV JUNIA';
 $metaDescription = 'Formulaire de création et de modification du CV étudiant JUNIA.';
 $bodyClass = 'page-simple page-formulaire';

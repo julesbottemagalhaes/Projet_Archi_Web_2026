@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['student'];
+require __DIR__ . '/../inc/auth-check.php';
+
 $pageTitle = 'Suppression de compte — CV JUNIA';
 $metaDescription = 'Demande de suppression de compte et de données personnelles.';
 $bodyClass = 'page-simple page-formulaire';

@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['admin'];
+require __DIR__ . '/../../inc/auth-check.php';
+
 $pageTitle = 'Demandes de contact — CV JUNIA';
 $metaDescription = 'Demandes reçues des entreprises non partenaires.';
 $bodyClass = 'page-simple page-accueil';

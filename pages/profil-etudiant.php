@@ -1,4 +1,7 @@
 <?php
+$requiredRoles = ['student'];
+require __DIR__ . '/../inc/auth-check.php';
+
 $pageTitle = 'Espace étudiant — CV JUNIA';
 $metaDescription = 'Espace étudiant pour consulter ou modifier son CV JUNIA.';
 $bodyClass = 'page-simple page-accueil';
