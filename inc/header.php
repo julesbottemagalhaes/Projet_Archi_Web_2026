@@ -42,6 +42,22 @@ $navItems = [
         };
     </script>
     <script src="<?php echo htmlspecialchars($assetBase . '/js/form-cv.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php if ($dataPage === 'catalogue'): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/catalogue.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
+    <?php if ($dataPage === 'cv'): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/detail-profil.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/convocation.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
+    <?php if (strpos($dataPage, 'admin') !== false): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/admin.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
+    <?php if ($dataPage === 'history'): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/convocation.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
+    <?php if ($dataPage === 'contact'): ?>
+    <script src="<?php echo htmlspecialchars($assetBase . '/js/contact.js', ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+    <?php endif; ?>
 </head>
 <body id="top" class="<?php echo htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8'); ?>" data-page="<?php echo htmlspecialchars($dataPage, ENT_QUOTES, 'UTF-8'); ?>">
     <header>
