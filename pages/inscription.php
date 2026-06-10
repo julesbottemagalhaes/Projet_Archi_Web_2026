@@ -18,7 +18,7 @@ require __DIR__ . '/../inc/header.php';
             La création de compte est réservée aux étudiants JUNIA. Une adresse
             institutionnelle est demandée pour préparer la validation du compte.
         </p>
-        <form>
+        <form id="form-inscription">
             <div class="grille-formulaire">
                 <div>
                     <label for="prenom">Prénom</label>
@@ -34,12 +34,12 @@ require __DIR__ . '/../inc/header.php';
                 </div>
                 <div>
                     <label for="password">Mot de passe</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" required>
                 </div>
             </div>
 
-            <label>
-                <input type="checkbox" name="consentement" required>
+            <label for="consentement">
+                <input type="checkbox" id="consentement" name="consentement" value="1" required>
                 J'accepte que mes informations soient utilisées pour créer mon profil CV JUNIA.
             </label>
 
@@ -47,6 +47,7 @@ require __DIR__ . '/../inc/header.php';
                 <button type="submit">Créer le compte</button>
                 <a class="bouton bouton-secondaire" href="<?php echo htmlspecialchars($assetBase . '/pages/connexion.php', ENT_QUOTES, 'UTF-8'); ?>">Déjà inscrit</a>
             </div>
+            <p id="inscription-message" class="message-cv" aria-live="polite"></p>
         </form>
     </section>
 

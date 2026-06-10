@@ -1,28 +1,30 @@
 <?php
   require __DIR__ . '/../inc/db.php';
 
-  header("Content-Type: application/json");
+  require_http_method('POST');
 
-  if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-    http_response_code(405);
-    echo json_encode(["error" => "Method not allowed"]);
-    exit;
+  $data = read_json_body();
+
+  $email = clean_string($data['email'] ?? '', 100);
+  $password = (string) ($data['password'] ?? '');
+  $user_type = clean_string($data['user_type'] ?? 'student', 20);
+
+  if ($email === '' || $password === '') {
+    json_response(["error" => "Email et mot de passe requis"], 400);
   }
 
-  $data = json_decode(file_get_contents("php://input"), true);
+  $roles = [
+    'student' => ['table' => 'etudiants', 'email_field' => 'email'],
+    'company' => ['table' => 'entreprises', 'email_field' => 'email_contact'],
+    'admin' => ['table' => 'admins', 'email_field' => 'email'],
+  ];
 
-  $email = $data['email'] ?? "";
-  $password = $data['password'] ?? "";
-  $user_type = $data['user_type'] ?? "";
-
-  if (empty($email) || empty($password)) {
-    http_response_code(400);
-    echo json_encode(["error" => "Email et mot de passe requis"]);
-    exit;
+  if (!isset($roles[$user_type])) {
+    json_response(["error" => "Type de compte invalide"], 400);
   }
 
-  $table = ($user_type == "company") ? "entreprises" : "etudiants";
-  $email_field = ($user_type == "company") ? "email_contact" : "email";
+  $table = $roles[$user_type]['table'];
+  $email_field = $roles[$user_type]['email_field'];
 
   $stmt = $connection->prepare(
     "SELECT id, nom, password_hash FROM $table WHERE $email_field = ?"
@@ -36,12 +38,15 @@
     $user = $result->fetch_assoc();
 
     if (password_verify($password, $user['password_hash'])) {
+      session_regenerate_id(true);
+
       $_SESSION['user_id'] = $user['id'];
+      $_SESSION['user_role'] = $user_type;
       $_SESSION['user_type'] = $user_type;
       $_SESSION['nom'] = $user['nom'];
+      $_SESSION['email'] = $email;
 
-      http_response_code(200);
-      echo json_encode([
+      json_response([
         "success" => true,
         "message" => "Connecté!",
         "user" => [
@@ -51,13 +56,10 @@
         ]
       ]);
     } else {
-      http_response_code(401);
-      echo json_encode(["error" => "Mot de passe incorrect"]);
+      json_response(["error" => "Identifiants invalides"], 401);
     }
   } else {
-    http_response_code(401);
-    echo json_encode(["error" => "Email non trouvé"]);
+    json_response(["error" => "Identifiants invalides"], 401);
   }
 
   $stmt->close();
-?>

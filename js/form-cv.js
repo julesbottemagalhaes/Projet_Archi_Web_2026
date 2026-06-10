@@ -487,10 +487,37 @@ async function login(email, password, userType) {
 }
 
 async function deconnexion() {
+    try {
+        await fetch(`${API_BASE}/logout.php`, {
+            method: "POST",
+            credentials: "include"
+        });
+    } catch {
+        // La session locale est tout de même nettoyée côté navigateur.
+    }
+
     effacerSession();
     afficherSectionConnexion();
     chargerProfils(1);
     afficherNotification("Déconnecté.");
+}
+
+async function inscrireEtudiant(donnees) {
+    const response = await fetch(`${API_BASE}/register.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(donnees)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Inscription impossible.");
+    }
+
+    sauvegarderSession(data.user);
+    return data;
 }
 
 // === BACKEND : CV ===
@@ -651,12 +678,21 @@ function afficherSectionConnexion() {
     conteneur.replaceChildren();
 
     if (session) {
-        const type = session.type === "student" ? "Étudiant" : "Entreprise";
+        const labels = { student: "Étudiant", company: "Entreprise", admin: "Admin" };
+        const type = labels[session.type] || "Compte";
         conteneur.append(creerElement("p", `Connecté en tant que ${session.nom} (${type}).`));
 
         const actions = document.createElement("div");
         actions.className = "actions-ligne";
         actions.style.marginTop = "1rem";
+
+        if (session.type === "student") {
+            const lienCv = document.createElement("a");
+            lienCv.href = ROUTES.creer;
+            lienCv.className = "bouton bouton-secondaire";
+            lienCv.textContent = "Modifier mon CV";
+            actions.append(lienCv);
+        }
 
         const btn = document.createElement("button");
         btn.textContent = "Se déconnecter";
@@ -683,6 +719,7 @@ function afficherSectionConnexion() {
                 <legend>Type de compte</legend>
                 <label><input type="radio" name="conn-type" value="student" checked> Étudiant</label>
                 <label><input type="radio" name="conn-type" value="company"> Entreprise</label>
+                <label><input type="radio" name="conn-type" value="admin"> Admin</label>
             </fieldset>
             <div class="actions-ligne" style="margin-top:1rem">
                 <button type="submit">Se connecter</button>
@@ -701,6 +738,43 @@ function afficherSectionConnexion() {
         conteneur.append(form);
     }
 }
+
+const initialiserInscription = () => {
+    const formulaire = selectionner("#form-inscription");
+    if (!formulaire) return;
+
+    const message = selectionner("#inscription-message");
+
+    formulaire.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!formulaire.reportValidity()) return;
+
+        const donnees = {
+            prenom: lireChamp(formulaire, "prenom"),
+            nom: lireChamp(formulaire, "nom"),
+            email: lireChamp(formulaire, "email"),
+            password: formulaire.elements.password.value,
+            consentement: formulaire.elements.consentement.checked
+        };
+
+        if (!estEmailJunia(donnees.email)) {
+            message.textContent = "Utilisez une adresse @junia.com.";
+            return;
+        }
+
+        message.textContent = "Création du compte...";
+
+        try {
+            await inscrireEtudiant(donnees);
+            message.textContent = "Compte créé. Redirection vers votre CV...";
+            afficherNotification("Compte étudiant créé.");
+            window.location.href = ROUTES.creer;
+        } catch (error) {
+            message.textContent = error.message;
+        }
+    });
+};
 
 // === INITIALISATION FORMULAIRE ===
 
@@ -799,4 +873,8 @@ if (document.body.dataset.page === "catalogue") {
 
 if (document.body.dataset.page === "login") {
     afficherSectionConnexion();
+}
+
+if (document.body.dataset.page === "register") {
+    initialiserInscription();
 }
