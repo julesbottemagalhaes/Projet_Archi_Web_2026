@@ -180,6 +180,30 @@ function upload_student_photo(?array $file, ?string $existingPhoto): ?string
     return 'uploads/photos/' . $filename;
 }
 
+function is_duplicate_student_email(mysqli $connection, string $email, int $etudiantId): bool
+{
+    $stmt = $connection->prepare('SELECT id FROM etudiants WHERE email = ? AND id <> ? LIMIT 1');
+    $stmt->bind_param('si', $email, $etudiantId);
+    $stmt->execute();
+    $exists = $stmt->get_result()->num_rows > 0;
+    $stmt->close();
+
+    return $exists;
+}
+
+function delete_uploaded_student_photo(?string $photo): void
+{
+    if (!$photo || !str_starts_with($photo, 'uploads/photos/')) {
+        return;
+    }
+
+    $path = APP_ROOT . '/' . $photo;
+
+    if (is_file($path)) {
+        @unlink($path);
+    }
+}
+
 $etudiantId = (int) $_SESSION['user_id'];
 $data = parse_cv_payload();
 
@@ -193,8 +217,16 @@ if (!$existing) {
     json_response(['error' => 'Compte étudiant introuvable.'], 404);
 }
 
-$photo = upload_student_photo($_FILES['photo'] ?? null, $existing['photo'] ?? null);
-$cv = normalise_cv_data($data, $photo);
+$existingPhoto = $existing['photo'] ?? null;
+$cv = normalise_cv_data($data, $existingPhoto);
+
+if (is_duplicate_student_email($connection, $cv['email'], $etudiantId)) {
+    json_response(['error' => 'Cette adresse email est déjà utilisée par un autre compte étudiant.'], 409);
+}
+
+$photo = upload_student_photo($_FILES['photo'] ?? null, $existingPhoto);
+$uploadedPhoto = $photo !== $existingPhoto ? $photo : null;
+$cv['photo'] = $photo ?? '';
 $nomComplet = trim($cv['prenom'] . ' ' . $cv['nom']);
 $titre = $cv['titre'];
 $email = $cv['email'];
@@ -296,7 +328,20 @@ try {
     $connection->commit();
 } catch (Throwable $exception) {
     $connection->rollback();
-    json_response(['error' => 'Impossible d’enregistrer le CV.'], 500);
+    delete_uploaded_student_photo($uploadedPhoto ?? null);
+    error_log('Erreur enregistrement CV: ' . $exception->getMessage());
+
+    if ($exception instanceof mysqli_sql_exception && (int) $exception->getCode() === 1062) {
+        json_response(['error' => 'Cette adresse email est déjà utilisée par un autre compte étudiant.'], 409);
+    }
+
+    $response = ['error' => 'Impossible d’enregistrer le CV.'];
+
+    if (APP_ENV === 'dev') {
+        $response['debug'] = $exception->getMessage();
+    }
+
+    json_response($response, 500);
 }
 
 $_SESSION['nom'] = $nomComplet;
